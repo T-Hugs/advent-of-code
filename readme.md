@@ -11,7 +11,7 @@ This repo contains a tool to automatically jump-start your workspace, including:
 
 It also includes utilities for Logging and other common tasks (if you're using Node.js).
 
-### Here's how to use it:
+## Usage
 Prerequisites: install [Node.js](https://nodejs.org) 14 (LTS) or later.
 
 **Quick-start instructions**
@@ -29,14 +29,14 @@ Once this is done, the folder `years/<current_year>` will contain a folder for e
 
 The script `init.js` has two main functions: `suck` and `seed`.
 
-#### Suck
+### Suck
 Suck is designed to automatically download problem data from adventofcode.com. When `suck` is passed to `init.js`, the script will open an instance of Chromium to a GitHub login page. After you log in, Chromium gets redirected back to adventofcode.com, where a cookie is set containing your session token. `init.js` reads this cookie and saves your session token to disk in a file called `.scratch`.
 
 * Suck will **not** try to download data for problems that are not released yet.
 * Suck will **not** try to download data for problems that have already been downloaded, *unless* `--pristine` is passed.
 * Suck does **not** do anything with your session token, except as described in this readme.
 
-##### Options
+#### Options
 `--year <year | "all">`: Specify the year of problems to suck in. If `all` is specified in place of the year, suck in data for all available years, starting in 2015. Defaults to the current year**.
 
 `--path <path>`: Specify the root path for writing data. Must be a fully qualified absolute path. Within this directory, directories for each year, then for each problem day will be created. Data is written to `data.txt` within the day directory.
@@ -47,10 +47,10 @@ Suck is designed to automatically download problem data from adventofcode.com. W
 
 `--pristine`: Request new data from adventofcode.com, even if the data file already exists.
 
-#### Seed
+### Seed
 Seed is designed to automatically create your working files. The default template (`solutionTemplate.ts.dat`) sets up imports, your solution functions, data import, and logging your solution.
 
-##### Options
+#### Options
 `--year <year | ">`: Specify the year of problems to seed solution files. If `all` is specified in place of the year, seed for all available years, starting in 2015. Defaults to the current year**.
 
 `--path <path>`: Specify the root path for writing data. Must be a fully qualified absolute path. Within this directory, directories for each year, then for each problem day will be created. Solution files are named `index` with a file extension found in your template file name (e.g. `solutionTemplate.rb.dat` will result in solution files named `index.rb`).
