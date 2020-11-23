@@ -3,16 +3,64 @@ import * as LOGUTIL from "../../../util/log.js";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 const YEAR = 2016;
 const DAY = 1;
-const DEBUG = false;
+const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
 // solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2016/01/index.ts
 // data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2016/01/data.txt
 // problem url  : https://adventofcode.com/2016/day/1
 async function p2016day1_part1(input) {
-    return "Not implemented";
+    let x = 0;
+    let y = 0;
+    let dir = 0;
+    const instructions = input.split(", ");
+    for (const instruction of instructions) {
+        dir = Number(util.mod(dir + (instruction[0] === "R" ? 1 : -1), 4));
+        let dist = parseInt(instruction.slice(1), 10);
+        if (dir === 0) {
+            y -= dist;
+        }
+        if (dir === 1) {
+            x += dist;
+        }
+        if (dir === 2) {
+            y += dist;
+        }
+        if (dir === 3) {
+            x -= dist;
+        }
+    }
+    log(`x: ${x}, y: ${y}`);
+    return Math.abs(x) + Math.abs(y);
 }
 async function p2016day1_part2(input, part1Solution) {
-    return "Not implemented";
+    let x = 0;
+    let y = 0;
+    let dir = 0;
+    const instructions = input.split(", ");
+    const visited = new Set();
+    for (const instruction of instructions) {
+        dir = Number(util.mod(dir + (instruction[0] === "R" ? 1 : -1), 4));
+        let dist = parseInt(instruction.slice(1), 10);
+        for (let i = 0; i < dist; ++i) {
+            if (dir === 0) {
+                y -= 1;
+            }
+            if (dir === 1) {
+                x += 1;
+            }
+            if (dir === 2) {
+                y += 1;
+            }
+            if (dir === 3) {
+                x -= 1;
+            }
+            const newLoc = `${x},${y}`;
+            if (visited.has(newLoc)) {
+                return Math.abs(x) + Math.abs(y);
+            }
+            visited.add(newLoc);
+        }
+    }
 }
 async function run() {
     const input = await util.getInput(DAY, YEAR);
