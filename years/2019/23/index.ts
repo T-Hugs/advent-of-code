@@ -1,6 +1,8 @@
 import * as util from "../../../util/util.js";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log.js";
+// @ts-ignore
+import { runProgram } from "../intcode.js";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2019;
