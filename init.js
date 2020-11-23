@@ -67,7 +67,7 @@ async function getNewSessionToken() {
     return sessionCookie.value;
 }
 async function login(token) {
-    const sessionToken = token !== null && token !== void 0 ? token : (await getNewSessionToken());
+    const sessionToken = token ?? (await getNewSessionToken());
     if (settings.storeToken) {
         localStorage.setItem("sessionToken", sessionToken);
     }

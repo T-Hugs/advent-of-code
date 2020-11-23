@@ -6,12 +6,12 @@ export function setDebug(debug: boolean) {
 	DEBUG = debug;
 }
 
-export function log(...params: (string | object)[]) {
+export function log(...params: any[]) {
 	for (const param of params) {
-		if (typeof param === "string") {
-			process.stdout.write(param + " ");
-		} else {
+		if (typeof param === "object") {
 			console.dir(param);
+		} else {
+			process.stdout.write(param.toString() + " ");
 		}
 	}
 	console.log();
@@ -28,15 +28,15 @@ export function logGrid(grid: string[][]) {
 	console.log(toPrint);
 }
 
-export function trace(...params: (string | object)[]) {
+export function trace(...params: any[]) {
 	if (DEBUG) {
 		for (const param of params) {
-			if (typeof param === "string") {
-				process.stdout.write(chalk.gray(param + " "));
-			} else {
+			if (typeof param === "object") {
 				process.stdout.write(chalk.gray("<"));
 				console.dir(param);
 				process.stdout.write(chalk.gray(">"));
+			} else {
+				process.stdout.write(chalk.gray(param.toString() + " "));
 			}
 		}
 		console.log();

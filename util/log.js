@@ -5,11 +5,11 @@ export function setDebug(debug) {
 }
 export function log(...params) {
     for (const param of params) {
-        if (typeof param === "string") {
-            process.stdout.write(param + " ");
+        if (typeof param === "object") {
+            console.dir(param);
         }
         else {
-            console.dir(param);
+            process.stdout.write(param.toString() + " ");
         }
     }
     console.log();
@@ -27,13 +27,13 @@ export function logGrid(grid) {
 export function trace(...params) {
     if (DEBUG) {
         for (const param of params) {
-            if (typeof param === "string") {
-                process.stdout.write(chalk.gray(param + " "));
-            }
-            else {
+            if (typeof param === "object") {
                 process.stdout.write(chalk.gray("<"));
                 console.dir(param);
                 process.stdout.write(chalk.gray(">"));
+            }
+            else {
+                process.stdout.write(chalk.gray(param.toString() + " "));
             }
         }
         console.log();

@@ -51,3 +51,46 @@ export async function getInput(day, year, rootDir = path.join(getAppRoot(), "yea
     const dayRoot = getDayRoot(day, year, rootDir);
     return fs.readFile(path.join(dayRoot, "data.txt"), "utf-8");
 }
+// The % operator in JS is the remainder operator. The below function
+// implements modulus. The two give the same output for positive values
+// of the left-operand, but different for negative values.
+// @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder
+export function mod(_a, _n) {
+    const [a, n] = [_a, _n].map(BigInt);
+    return ((a % n) + n) % n;
+}
+export function gcdExtended(_a, _b) {
+    let [a, b] = [_a, _b].map(BigInt);
+    let x = 0n, y = 1n, u = 1n, v = 0n;
+    while (a !== 0n) {
+        let q = b / a;
+        [x, y, u, v] = [u, v, x - u * q, y - v * q];
+        [a, b] = [b % a, a];
+    }
+    return [b, x, y];
+}
+export function modInverse(_a, _m) {
+    const [a, m] = [_a, _m].map(BigInt);
+    const [g, x] = gcdExtended(a, m);
+    if (g !== 1n)
+        throw "Bad mod inverse";
+    return (x + m) % m;
+}
+export function modDivide(_a, _b, _m) {
+    const [a, b, m] = [_a, _b, _m].map(BigInt);
+    return (a * modInverse(b, m)) % m;
+}
+export function powerMod(_base, _exponent, _modulus) {
+    let [base, exponent, modulus] = [_base, _exponent, _modulus].map(BigInt);
+    if (modulus === 1n)
+        return 0n;
+    let result = 1n;
+    base = base % modulus;
+    while (exponent > 0n) {
+        if (exponent % 2n === 1n)
+            result = (result * base) % modulus;
+        exponent = exponent >> 1n;
+        base = (base * base) % modulus;
+    }
+    return result;
+}
