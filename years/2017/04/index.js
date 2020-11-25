@@ -6,8 +6,8 @@ const YEAR = 2017;
 const DAY = 4;
 const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2017/04/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2017/04/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2017/04/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2017/04/data.txt
 // problem url  : https://adventofcode.com/2017/day/4
 async function p2017day4_part1(input) {
     return "Not implemented";

@@ -9,8 +9,8 @@ const DAY = 11;
 const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
 
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2016/11/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2016/11/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2016/11/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2016/11/data.txt
 // problem url  : https://adventofcode.com/2016/day/11
 
 async function p2016day11_part1(input: string) {

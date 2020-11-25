@@ -6,8 +6,8 @@ const YEAR = 2019;
 const DAY = 13;
 const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2019/13/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2019/13/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2019/13/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2019/13/data.txt
 // problem url  : https://adventofcode.com/2019/day/13
 async function p2019day13_part1(input) {
     return "Not implemented";

@@ -9,8 +9,8 @@ const DAY = 20;
 const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
 
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2015/20/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2015/20/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2015/20/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/20/data.txt
 // problem url  : https://adventofcode.com/2015/day/20
 
 async function p2015day20_part1(input: string) {

@@ -1,5 +1,5 @@
 {
-	"name": "aoc-2020",
+	"name": "advent-of-code",
 	"version": "1.0.0",
 	"description": "Trevor Gau's solutions to Advent of Code 2020",
 	"main": "index.js",
@@ -8,15 +8,15 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/T-Hugs/aoc-2020.git"
+		"url": "git+https://github.com/T-Hugs/advent-of-code.git"
 	},
 	"author": "Trevor Gau",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/T-Hugs/aoc-2020/issues"
+		"url": "https://github.com/T-Hugs/advent-of-code/issues"
 	},
 	"type": "module",
-	"homepage": "https://github.com/T-Hugs/aoc-2020#readme",
+	"homepage": "https://github.com/T-Hugs/advent-of-code#readme",
 	"dependencies": {
 		"@types/mkdirp": "^1.0.1",
 		"@types/node": "^14.14.9",
@@ -27,6 +27,7 @@
 		"node-fetch": "^2.6.1",
 		"node-localstorage": "^2.1.6",
 		"playwright-chromium": "^1.6.2",
+		"ts-node": "^9.0.0",
 		"typescript": "^4.1.2"
 	}
 }

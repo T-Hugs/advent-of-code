@@ -6,8 +6,8 @@ const YEAR = 2015;
 const DAY = 1;
 const DEBUG = false;
 LOGUTIL.setDebug(DEBUG);
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2015/01/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2015/01/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2015/01/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/01/data.txt
 // problem url  : https://adventofcode.com/2015/day/1
 async function p2015day1_part1(input) {
     let lc = 0;

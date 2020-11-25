@@ -8,8 +8,8 @@ const DAY = 1;
 const DEBUG = false;
 LOGUTIL.setDebug(DEBUG);
 
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2019/01/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2019/01/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2019/01/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2019/01/data.txt
 // problem url  : https://adventofcode.com/2019/day/1
 
 async function p2019day1_part1(input: string) {

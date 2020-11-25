@@ -9,8 +9,8 @@ const DAY = 21;
 const DEBUG = true;
 LOGUTIL.setDebug(DEBUG);
 
-// solution path: /Users/trevorsg/t-hugs/aoc-2020/years/2019/21/index.ts
-// data path    : /Users/trevorsg/t-hugs/aoc-2020/years/2019/21/data.txt
+// solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2019/21/index.ts
+// data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2019/21/data.txt
 // problem url  : https://adventofcode.com/2019/day/21
 
 async function p2019day21_part1(input: string) {
