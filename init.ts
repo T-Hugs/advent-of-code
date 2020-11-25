@@ -15,6 +15,7 @@ interface Settings {
 	storeToken: boolean;
 	suck: boolean;
 	templatePath: string;
+	compareWithPath?: string;
 	years: number[];
 }
 
@@ -42,6 +43,9 @@ suck             : Suck in problem data from adventofcode.com.
                    be any extension. All solution files generated will 
                    have an extension of ".xx". Must supply full, absolute
                    path. Defaults to {app_root}/solutionTemplate.ts.dat.
+--compare-with   : Optional template to compare with to make template
+                   updates without destroying any existing solutions.
+                   Defaults to {app_root}/compareTemplate.dat.
 --token, -t      : Specify your session token for authentication.
                    Defaults to get it interactively using Chromium.
                    Plain text value will be saved in .scratch.
@@ -60,6 +64,7 @@ const settings: Settings = {
 	seed: false,
 	rootPath: "",
 	templatePath: "",
+	compareWithPath: "",
 	pristine: false,
 };
 const appRoot = getAppRoot();
@@ -142,6 +147,18 @@ async function getTemplate() {
 	return template;
 }
 
+let compareTemplate: string | undefined;
+async function getCompareTemplate() {
+	if (compareTemplate == undefined) {
+		if (settings.compareWithPath && existsSync(settings.compareWithPath)) {
+			compareTemplate = await fs.readFile(settings.compareWithPath, "utf-8");
+		} else {
+			compareTemplate = "XXXXXX";
+		}
+	}
+	return compareTemplate;
+}
+
 function getLatestPuzzleDate(asOf = new Date()) {
 	const asUTC = new Date(asOf.getTime() + asOf.getTimezoneOffset() * 60 * 1000);
 	const asEST = new Date(asUTC.getTime() - 5 * 60 * 60 * 1000);
@@ -204,6 +221,10 @@ function parseArgs() {
 		templatePathIndex >= 0 ? args[templatePathIndex + 1] : path.join(getAppRoot(), "solutionTemplate.ts.dat");
 	const origTemplatePath = templatePath;
 
+	const compareWithIndex = args.findIndex(a => a === "--compare-with");
+	let compareWithPath =
+		compareWithIndex >= 0 ? args[compareWithIndex + 1] : path.join(getAppRoot(), "compareTemplate.dat");
+
 	const sessionToken = sessionTokenIndex >= 0 ? args[sessionTokenIndex + 1] : undefined;
 	const storeToken = !args.includes("--no-store-token");
 	const suck = args.includes("suck");
@@ -226,6 +247,7 @@ function parseArgs() {
 		rootPath,
 		templatePath,
 		pristine,
+		compareWithPath,
 	} as Settings);
 
 	if (!settings.storeToken) {
@@ -238,14 +260,28 @@ async function seed(year: number) {
 		const day = i + 1;
 		const solutionPath = getSolutionPath(day, year);
 
-		if (settings.pristine || !existsSync(solutionPath)) {
-			const seedText = replaceAll(await getTemplate(), {
-				"{year}": String(year),
-				"{day}": String(day),
-				"{solution_path}": solutionPath,
-				"{data_path}": getDataPath(day, year),
-				"{problem_url}": getProblemUrl(day, year),
-			});
+		const replacements = {
+			"{year}": String(year),
+			"{day}": String(day),
+			"{solution_path}": solutionPath,
+			"{data_path}": getDataPath(day, year),
+			"{problem_url}": getProblemUrl(day, year),
+		};
+
+		let doesNotExistOrIsUnchanged = !existsSync(solutionPath);
+		if (!doesNotExistOrIsUnchanged) {
+			const compareTemplate = await getCompareTemplate();
+			const existingFileContents = await fs.readFile(solutionPath, "utf-8");
+			const compareSeed = replaceAll(compareTemplate, replacements);
+			doesNotExistOrIsUnchanged = compareSeed === existingFileContents;
+			console.log("EXISTING");
+			console.log(existingFileContents);
+			console.log("COMPARE");
+			console.log(compareSeed);
+		}
+
+		if (settings.pristine || doesNotExistOrIsUnchanged) {
+			const seedText = replaceAll(await getTemplate(), replacements);
 			await fs.writeFile(solutionPath, seedText, "utf-8");
 		}
 	}
