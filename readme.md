@@ -16,12 +16,13 @@ Prerequisites: install [Node.js](https://nodejs.org) 14 (LTS) or later.
 
 **Quick-start instructions**
 
-1. Fork this repo
-2. Clone the forked repository
-3. `cd` into the repository and run `npm install`
-3. Run `npx ts-node init.ts suck seed --pristine`. If you run this again, REMOVE `--pristine`! See below for details.
-4. An instance of Chromium will open to a GitHub* login page. Log in with your credentials. Chromium will then close.
-5. Command line output will show progress for downloading the data for each problem in the current** year of AoC.
+1. Create an account at https://adventofcode.com using GitHub OAuth.
+2. Fork this repo
+3. Clone the forked repository
+4. `cd` into the repository and run `npm install`
+5. Run `npx ts-node init.ts suck seed --pristine`. If you run this again, REMOVE `--pristine`! See below for details.
+6. An instance of Chromium will open to a GitHub* login page. Log in with your credentials. Chromium will then close.
+7. Command line output will show progress for downloading the data for each problem in the current** year of AoC.
 
 Once this is done, the folder `years/<current_year>` will contain a folder for each day, each of which includes your personalized data file and a solution file ready-to-run. Go ahead, run `node years/2019/01` and see that it prints out "Not implemented" for Part 1 and Part 2 of that problem. That's your job! Open up `years/2019/01/index.ts` and get to work!
 
