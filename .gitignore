@@ -1,4 +1,4 @@
 .DS_Store
 .scratch
-test.ts
+./test.ts
 node_modules/
