@@ -274,10 +274,6 @@ async function seed(year: number) {
 			const existingFileContents = await fs.readFile(solutionPath, "utf-8");
 			const compareSeed = replaceAll(compareTemplate, replacements);
 			doesNotExistOrIsUnchanged = compareSeed === existingFileContents;
-			console.log("EXISTING");
-			console.log(existingFileContents);
-			console.log("COMPARE");
-			console.log(compareSeed);
 		}
 
 		if (settings.pristine || doesNotExistOrIsUnchanged) {
