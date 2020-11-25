@@ -19,11 +19,13 @@ Prerequisites: install [Node.js](https://nodejs.org) 14 (LTS) or later.
 1. Fork this repo
 2. Clone the forked repository
 3. `cd` into the repository and run `npm install`
-3. Run `node init.js suck seed --pristine`. If you run this again, REMOVE `--pristine`! See below for details.
+3. Run `npx ts-node init.ts suck seed --pristine`. If you run this again, REMOVE `--pristine`! See below for details.
 4. An instance of Chromium will open to a GitHub* login page. Log in with your credentials. Chromium will then close.
 5. Command line output will show progress for downloading the data for each problem in the current** year of AoC.
 
 Once this is done, the folder `years/<current_year>` will contain a folder for each day, each of which includes your personalized data file and a solution file ready-to-run. Go ahead, run `node years/2019/01` and see that it prints out "Not implemented" for Part 1 and Part 2 of that problem. That's your job! Open up `years/2019/01/index.ts` and get to work!
+
+To run the TypeScript solutions, use `npx ts-node years/YEAR/DAY`, replacing YEAR and DAY with the values for the solution you want to run. For example `npx ts-node years/2015/01`. If you want, you can install ts-node globally, which will allow to you remove npx from the invocation: `npm install --global ts-node` and then `ts-node years/2015/01`.
 
 **A bit more in-depth**
 
@@ -57,8 +59,22 @@ Seed is designed to automatically create your working files. The default templat
 
 `--template`: Specify the path to your template file. For an example, see `solutionTemplate.ts.dat`.
 
+`--compare-with`: This is used in case you need to update your template and want to re-generate any un-touched files. Specify the path of the template file to use as a basis for comparison to decide if we can re-generate the file without using `--pristine`.
+
 `--pristine`: **DANGER!!** This will overwrite any existing solution files! Use with caution! You have been warned!
 
 \* More auth providers coming soon. This step is necessary to get a session token that allows the script to download your personalized problem data.
 
 ** The current year will resolve as last year until new problems are available. For instance, if you run this in November 2020, it will suck in problems from 2019. If you run in December 2020, you will start getting the problems from 2020.
+
+## Advent of Code Solutions
+The default template sets up each solution file to automatically read the problem's data file and call 2 functions: one for Part 1 and one for Part 2. The result of calling the solution function is printed to the console on a green background.
+
+The solution function is asynchronous by default. Even if the solution is completely synchronous, everything will still work.
+
+### Test Cases
+There is a small framework included for running test cases. The `run()` function includes two variables, `part1tests` and `part2tests`, each of which is an array of `TestCase`. A `TestCase` is a simple object with two properties: `input` and `expected`. If using VSCode, you can use the `test` snippet to insert a new test case at your cursor. Any tests added to the test case arrays will be run *before* the main problem's input so you don't have to worry about a solution that takes a long time to run before seeing output. Test cases are printed out in an easy-to-read format (screenshot below).
+
+You can pass `true` to `beginTests()` and `beginSection()` to suppress the output of all tests or tests in a particular section, respectively.
+
+![test output screenshot](./.assets/test-output-screenshot.png)
