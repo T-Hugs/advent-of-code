@@ -1,7 +1,11 @@
+import _, { replace } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
+import aStar from "a-star";
+import levenshtein from "fast-levenshtein";
+import { performance } from "perf_hooks";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
@@ -13,20 +17,140 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/19/data.txt
 // problem url  : https://adventofcode.com/2015/day/19
 
+let neighborMemo: {[molecule: string]: string[]} = {};
+function getNeighbors(molecule: string, replacements: { [lhs: string]: string[] }) {
+	if (neighborMemo[molecule]) {
+		return neighborMemo[molecule];
+	}
+	const molecules: string[] = [];
+	for (const search of Object.keys(replacements)) {
+		let index = 0;
+		while (index !== -1) {
+			index = molecule.indexOf(search, index);
+			if (index !== -1) {
+				for (const repl of replacements[search]) {
+					molecules.push(molecule.substr(0, index) + repl + molecule.substr(index + search.length));
+				}
+				index++;
+			}
+		}
+	}
+	const neighbors = _.uniq(molecules);
+	neighborMemo[molecule] = neighbors;
+	return neighbors;
+}
+
 async function p2015day19_part1(input: string) {
-	return "Not implemented";
+	neighborMemo = {};
+	const replacements: { [lhs: string]: string[] } = {};
+	let molecule = "";
+	let onMolecule = false;
+	for (const line of input.split("\n").map(l => l.trim())) {
+		if (line === "") {
+			onMolecule = true;
+			continue;
+		}
+		if (!onMolecule) {
+			const [lhs, rhs] = line.split(" => ");
+			if (!replacements[lhs]) {
+				replacements[lhs] = [rhs];
+			} else {
+				replacements[lhs].push(rhs);
+			}
+		} else {
+			molecule = line;
+		}
+	}
+
+	return getNeighbors(molecule, replacements).length;
 }
 
 async function p2015day19_part2(input: string) {
-	return "Not implemented";
+	neighborMemo = {};
+	const replacements: { [lhs: string]: string[] } = {};
+	let molecule = "";
+	let onMolecule = false;
+	for (const line of input.split("\n").map(l => l.trim())) {
+		if (line === "") {
+			onMolecule = true;
+			continue;
+		}
+		if (!onMolecule) {
+			// NOTICE: RHS and LHS have been switched in the line below!
+			const [rhs, lhs] = line.split(" => ");
+			if (!replacements[lhs]) {
+				replacements[lhs] = [rhs];
+			} else {
+				replacements[lhs].push(rhs);
+			}
+		} else {
+			molecule = line;
+		}
+	}
+	const options = {
+		start: molecule,
+		isEnd: (node: string) => {
+			return node === "e"
+		},
+		neighbor: (node: string) => {
+			const neighbors = getNeighbors(node, replacements);
+			return neighbors;
+		},
+		distance: () => {
+			return 1;
+		},
+		heuristic: (node: string) => {
+			return levenshtein.get(node, "e");
+		}
+	}
+	const path = aStar(options);
+	return path.path.length - 1;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `H => HO
+H => OH
+O => HH
+
+HOH`,
+			expected: `4`,
+		},
+		{
+			input: `H => HO
+H => OH
+O => HH
+
+HOHOHO`,
+			expected: `7`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOH`,
+			expected: `3`,
+		},
+		{
+			input: `e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOHOHO`,
+			expected: `6`,
+		},
+	];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day19_part1(testCase.input)));
@@ -39,10 +163,21 @@ async function run() {
 
 	// Get input and run program
 	const input = await util.getInput(DAY, YEAR);
+
+	const part1Before = performance.now();
 	const part1Solution = String(await p2015day19_part1(input));
+	const part1After = performance.now();
+
+	const part2Before = performance.now()
 	const part2Solution = String(await p2015day19_part2(input));
+	const part2After = performance.now();
 
 	logSolution(part1Solution, part2Solution);
+
+	log(chalk.gray("--- Performance ---"));
+	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
+	log(chalk.gray(`Part 2: ${util.msToString(part2After - part2Before)}`));
+	log();
 }
 
 run()

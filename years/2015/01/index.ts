@@ -67,15 +67,14 @@ async function run() {
 		},
 		{
 			input: `())`,
-			expected: `-12`
+			expected: `-1`
 		},
 		{
 			input: `))(`,
 			expected: `-1`
 		},
 		{
-			input: `)))
-(((`,
+			input: `)))`,
 			expected: `-3`
 		},
 		{

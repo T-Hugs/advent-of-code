@@ -21,6 +21,17 @@ export function replaceAll(corpus: string, replacements: { [search: string]: str
 	return current;
 }
 
+export function msToString(ms: number) {
+	if (ms < 10000) {
+		return ms + "ms";
+	} else if (ms < 60000) {
+		return (ms / 1000) + "sec";
+	} else {
+		const mins = Math.floor(ms / 60000);
+		return mins + "min " + ((ms % 60000) / 1000) + "sec";
+	}
+}
+
 /**
  * Returns a promise that resolves after a certain amount of time.
  * @param ms Number of milliseconds to wait
