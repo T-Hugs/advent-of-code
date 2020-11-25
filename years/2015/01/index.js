@@ -1,4 +1,5 @@
 import * as util from "../../../util/util.js";
+import * as test from "../../../util/test.js";
 import * as LOGUTIL from "../../../util/log.js";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 const YEAR = 2015;
@@ -21,7 +22,7 @@ async function p2015day1_part1(input) {
     }
     return lc - rc;
 }
-async function p2015day1_part2(input, part1Solution) {
+async function p2015day1_part2(input) {
     let lc = 0;
     let rc = 0;
     for (let i = 0; i < input.length; ++i) {
@@ -37,9 +38,70 @@ async function p2015day1_part2(input, part1Solution) {
     }
 }
 async function run() {
+    const part1tests = [
+        {
+            input: `(())`,
+            expected: `0`
+        },
+        {
+            input: `()()`,
+            expected: `0`
+        },
+        {
+            input: `(((`,
+            expected: `3`
+        },
+        {
+            input: `(()(()(`,
+            expected: `3`
+        },
+        {
+            input: `))(((((`,
+            expected: `3`
+        },
+        {
+            input: `())`,
+            expected: `-12`
+        },
+        {
+            input: `))(`,
+            expected: `-1`
+        },
+        {
+            input: `)))
+(((`,
+            expected: `-3`
+        },
+        {
+            input: `)())())`,
+            expected: `-3`
+        },
+    ];
+    const part2tests = [
+        {
+            input: `)`,
+            expected: `1`
+        },
+        {
+            input: `()())`,
+            expected: `5`
+        },
+    ];
+    // Run tests
+    test.beginTests();
+    test.beginSection();
+    for (const testCase of part1tests) {
+        test.logTestResult(testCase, String(await p2015day1_part1(testCase.input)));
+    }
+    test.beginSection();
+    for (const testCase of part2tests) {
+        test.logTestResult(testCase, String(await p2015day1_part2(testCase.input)));
+    }
+    test.endTests();
+    // Get input and run program
     const input = await util.getInput(DAY, YEAR);
     const part1Solution = String(await p2015day1_part1(input));
-    const part2Solution = String(await p2015day1_part2(input, part1Solution));
+    const part2Solution = String(await p2015day1_part2(input));
     logSolution(part1Solution, part2Solution);
 }
 run()
