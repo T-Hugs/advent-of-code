@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl } from "./util/util.js";
+import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";
 import * as path from "path";

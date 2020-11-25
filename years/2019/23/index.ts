@@ -1,6 +1,6 @@
-import * as util from "../../../util/util.js";
+import * as util from "../../../util/util";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log.js";
+import * as LOGUTIL from "../../../util/log";
 // @ts-ignore
 import { runProgram } from "../intcode.js";
 const { log, logGrid, logSolution, trace } = LOGUTIL;

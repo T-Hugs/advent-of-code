@@ -29,7 +29,8 @@ export async function wait(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Use this if we move back to ESM
+// export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Starting from the directory this file is running in, search up

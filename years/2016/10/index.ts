@@ -1,7 +1,7 @@
-import * as util from "../../../util/util.js";
-import * as test from "../../../util/test.js";
+import * as util from "../../../util/util";
+import * as test from "../../../util/test";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log.js";
+import * as LOGUTIL from "../../../util/log";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2016;
