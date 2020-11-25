@@ -40,7 +40,7 @@ async function run() {
 	// Get input and run program
 	const input = await util.getInput(DAY, YEAR);
 	const part1Solution = String(await p{year}day{day}_part1(input));
-	const part2Solution = String(await p{year}day{day}_part2(input, part1Solution));
+	const part2Solution = String(await p{year}day{day}_part2(input));
 
 	logSolution(part1Solution, part2Solution);
 }
