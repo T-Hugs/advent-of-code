@@ -17,11 +17,11 @@ export function log(...params: any[]) {
 	console.log();
 }
 
-export function logGrid(grid: string[][]) {
+export function logGrid(grid: any[][]) {
 	let toPrint = "";
 	for (const row of grid) {
 		for (const cell of row) {
-			toPrint += cell;
+			toPrint += cell.toString();
 		}
 		toPrint += "\n";
 	}
