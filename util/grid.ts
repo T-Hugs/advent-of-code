@@ -24,6 +24,7 @@ export class Grid {
 	private grid: string[][] = [];
 	private nextColor = 0;
 	private sigilStats: { [sigil: string]: { colorIndex: number; count: number } } = {};
+	private batchUpdatedGrid: Grid | undefined;
 
 	constructor(options: GridOptions) {
 		if ((!options.rows || !options.cols) && !options.serialized) {
@@ -83,9 +84,30 @@ export class Grid {
 		}
 	}
 
-	public setCell(pos: GridPos, val: string) {
-		this.grid[pos[0]][pos[1]] = val;
-		this.ensureSigilRegistered(val);
+	public batchUpdates() {
+		if (this.batchUpdatedGrid != undefined) {
+			throw new Error("Already batch updating. Must commit those changes first.");
+		}
+		this.batchUpdatedGrid = new Grid({ rows: this.numRows, cols: this.numCols });
+	}
+
+	public commit() {
+		if (this.batchUpdatedGrid == undefined) {
+			throw new Error("Have not called batchUpdates().");
+		}
+		for (const cell of this.batchUpdatedGrid) {
+			this.setCell(cell.position, cell.value, true);
+		}
+		this.batchUpdatedGrid = undefined;
+	}
+
+	public setCell(pos: GridPos, val: string, ignoreBatch = false) {
+		if (this.batchUpdatedGrid && !ignoreBatch) {
+			this.batchUpdatedGrid.setCell(pos, val);
+		} else {
+			this.grid[pos[0]][pos[1]] = val;
+			this.ensureSigilRegistered(val);
+		}
 	}
 
 	public getCell(input: GridPos | string | ((cell: Cell) => boolean)) {
@@ -208,6 +230,10 @@ export class Cell {
 		return this.val;
 	}
 
+	public get position() {
+		return this.pos;
+	}
+
 	public north(count = 1) {
 		return this.grid.getCell([this.pos[0] - count, this.pos[1]]);
 	}
@@ -235,10 +261,14 @@ export class Cell {
 				this.south()?.west(),
 				this.west(),
 				this.north()?.west(),
-			];
+			].filter(n => n != undefined) as Cell[];
 		} else {
-			return [this.north(), this.east(), this.south(), this.west()];
+			return [this.north(), this.east(), this.south(), this.west()].filter(n => n != undefined) as Cell[];
 		}
+	}
+
+	public setValue(val: string) {
+		this.grid.setCell(this.pos, val);
 	}
 
 	public toString() {
@@ -264,7 +294,7 @@ if (require.main === module) {
 	}
 	console.log(`dot count: ${count} (expect 11)`);
 	const cellsThatHaveTwoDotNeighbors = Array.from(g).reduce(
-		(p, c) => p + (c.neighbors(true).filter(n => n && n.value === ".").length === 2 ? 1 : 0),
+		(p, c) => p + (c.neighbors(true).filter(n => n.value === ".").length === 2 ? 1 : 0),
 		0
 	);
 	console.log(`Num cells w/ 2 neighbors that are dots: ${cellsThatHaveTwoDotNeighbors} (expect 8)`);
