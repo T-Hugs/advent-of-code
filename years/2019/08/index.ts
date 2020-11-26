@@ -1,7 +1,9 @@
+import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
+import { performance } from "perf_hooks";
 const { log, logGrid, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2019;
@@ -37,12 +39,23 @@ async function run() {
 	}
 	test.endTests();
 
-	// Get input and run program
+	// Get input and run program while measuring performance
 	const input = await util.getInput(DAY, YEAR);
-	const part1Solution = String(await p2019day8_part1(input));
-	const part2Solution = String(await p2019day8_part2(input));
 
+	const part1Before = performance.now();
+	const part1Solution = String(await p2019day8_part1(input));
+	const part1After = performance.now();
+
+	const part2Before = performance.now()
+	const part2Solution = String(await p2019day8_part2(input));
+	const part2After = performance.now();
+	
 	logSolution(part1Solution, part2Solution);
+
+	log(chalk.gray("--- Performance ---"));
+	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
+	log(chalk.gray(`Part 2: ${util.msToString(part2After - part2Before)}`));
+	log();
 }
 
 run()
