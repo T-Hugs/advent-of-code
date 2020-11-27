@@ -25,10 +25,10 @@ export function msToString(ms: number) {
 	if (ms < 10000) {
 		return ms + "ms";
 	} else if (ms < 60000) {
-		return (ms / 1000) + "sec";
+		return ms / 1000 + "sec";
 	} else {
 		const mins = Math.floor(ms / 60000);
-		return mins + "min " + ((ms % 60000) / 1000) + "sec";
+		return mins + "min " + (ms % 60000) / 1000 + "sec";
 	}
 }
 
@@ -110,10 +110,42 @@ export function powerMod(_base: number | bigint, _exponent: number | bigint, _mo
 	let result = 1n;
 	base = base % modulus;
 	while (exponent > 0n) {
-		if (exponent % 2n === 1n)
-			result = (result * base) % modulus;
+		if (exponent % 2n === 1n) result = (result * base) % modulus;
 		exponent = exponent >> 1n;
 		base = (base * base) % modulus;
+	}
+	return result;
+}
+
+export function getPermutations<T>(inputArr: T[]) {
+	const result: T[][] = [];
+
+	function permute(arr: T[], m: T[] = []) {
+		if (arr.length === 0) {
+			result.push(m);
+		} else {
+			for (let i = 0; i < arr.length; ++i) {
+				const current = arr.slice();
+				const next = current.splice(i, 1);
+				permute(current.slice(), m.concat(next));
+			}
+		}
+	}
+
+	permute(inputArr);
+
+	return result;
+}
+
+export function powerSet<T>(inputArr: T[], settings: { proper?: boolean; nonEmpty?: boolean } = {}) {
+	let result = inputArr.reduce((subsets, value) => subsets.concat(subsets.map(set => [value, ...set])), [
+		[],
+	] as T[][]);
+	if (settings.proper) {
+		result = result.filter(a => a.length !== inputArr.length);
+	}
+	if (settings.nonEmpty) {
+		result = result.filter(a => a.length !== 0);
 	}
 	return result;
 }

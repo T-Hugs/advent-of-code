@@ -32,17 +32,23 @@ export function trace(...params: any[]) {
 	}
 }
 
-export function logSolution(part1: string, part2: string) {
+export function logSolution(part1: string, part2?: string) {
 	const part1Text =
-		part1 === "Not implemented" ? chalk.black.bgYellowBright(` ${part1} `) : chalk.black.bgGreenBright(` ${part1} `);
+		part1 === "Not implemented"
+			? chalk.black.bgYellowBright(` ${part1} `)
+			: chalk.black.bgGreenBright(` ${part1} `);
 	const part2Text =
-		part2 === "Not implemented" ? chalk.black.bgYellowBright(` ${part2} `) : chalk.black.bgGreenBright(` ${part2} `);
+		part2 != undefined
+			? part2 === "Not implemented"
+				? chalk.black.bgYellowBright(` ${part2} `)
+				: chalk.black.bgGreenBright(` ${part2} `)
+			: "";
 
 	console.log(
 		"\n== ANSWER ==\n" +
 			chalk.blueBright.bold("Part 1: ") +
 			part1Text +
-			chalk.blueBright.bold("\nPart 2: ") +
+			(part2 != undefined ? chalk.blueBright.bold("\nPart 2: ") : "") +
 			part2Text +
 			"\n"
 	);

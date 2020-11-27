@@ -8,6 +8,7 @@ interface Registers {
 	ec?: number;
 	err?: string;
 }
+
 export function compute(von_neumann: bigint[], inputBuffer: bigint[] | (() => bigint) = [], outputBuffer: bigint[] | ((val: bigint) => void) = [], reg: Registers = {}) {
 let inputIterator: Iterator<bigint>;
 	if (isIterable(inputBuffer)) {
