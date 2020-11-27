@@ -4,7 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
-const { log, logGrid, logSolution, trace } = LOGUTIL;
+const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2018;
 const DAY = 7;

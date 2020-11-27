@@ -6,7 +6,7 @@ import * as LOGUTIL from "../../../util/log";
 import aStar from "a-star";
 import levenshtein from "fast-levenshtein";
 import { performance } from "perf_hooks";
-const { log, logGrid, logSolution, trace } = LOGUTIL;
+const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
 const DAY = 19;

@@ -2,7 +2,7 @@ import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
-const { log, logGrid, logSolution, trace } = LOGUTIL;
+const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
 const DAY = 1;

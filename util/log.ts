@@ -17,17 +17,6 @@ export function log(...params: any[]) {
 	console.log();
 }
 
-export function logGrid(grid: any[][]) {
-	let toPrint = "";
-	for (const row of grid) {
-		for (const cell of row) {
-			toPrint += cell.toString();
-		}
-		toPrint += "\n";
-	}
-	console.log(toPrint);
-}
-
 export function trace(...params: any[]) {
 	if (DEBUG) {
 		for (const param of params) {

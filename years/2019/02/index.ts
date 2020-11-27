@@ -5,7 +5,7 @@ import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
 import { compute } from "../bigintcode";
-const { log, logGrid, logSolution, trace } = LOGUTIL;
+const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2019;
 const DAY = 2;
