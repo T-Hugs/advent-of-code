@@ -4,8 +4,9 @@ import chalk from "chalk";
 
 export interface GridOptions {
 	serialized?: string;
-	rows?: number;
-	cols?: number;
+	fillWith?: string;
+	rowCount?: number;
+	colCount?: number;
 }
 
 export type GridPos = [row: number, col: number];
@@ -25,27 +26,37 @@ export class Grid {
 	private nextColor = 0;
 	private sigilStats: { [sigil: string]: { colorIndex: number; count: number } } = {};
 	private batchUpdatedGrid: Grid | undefined;
+	private fillWith: string | undefined;
 
 	constructor(options: GridOptions) {
-		if ((!options.rows || !options.cols) && !options.serialized) {
+		if ((!options.rowCount || !options.colCount) && !options.serialized) {
 			throw new Error("Must specify # of rows and cols, or a serialized grid.");
 		}
 		const splitSerial = options.serialized?.split("\n");
-		this.numRows = options.rows || splitSerial!.length;
-		this.numCols = options.cols || splitSerial![0].length;
+		this.numRows = options.rowCount || splitSerial!.length;
+		this.numCols = options.colCount || splitSerial![0].length;
 
 		if (options.serialized) {
 			this.setFromSerialized(options.serialized);
 		} else {
-			this.initBlankGrid();
+			this.initBlankGrid(options.fillWith);
 		}
 	}
-	public initBlankGrid() {
+
+	public get rowCount() {
+		return this.numRows;
+	}
+
+	public get colCount() {
+		return this.numCols;
+	}
+
+	public initBlankGrid(fillWith: string | undefined) {
 		this.grid = [];
 		for (const i of _.range(this.numRows)) {
 			this.grid.push([]);
 			for (const j of _.range(this.numCols)) {
-				this.grid[i][j] = " ";
+				this.grid[i][j] = fillWith ?? " ";
 			}
 		}
 	}
@@ -57,7 +68,7 @@ export class Grid {
 			this.numCols = serialRows[0].length;
 		}
 
-		this.initBlankGrid();
+		this.initBlankGrid(this.fillWith);
 
 		for (let i = 0; i < serialRows.length; ++i) {
 			for (let j = 0; j < serialRows[0].length; ++j) {
@@ -88,7 +99,7 @@ export class Grid {
 		if (this.batchUpdatedGrid != undefined) {
 			throw new Error("Already batch updating. Must commit those changes first.");
 		}
-		this.batchUpdatedGrid = new Grid({ rows: this.numRows, cols: this.numCols });
+		this.batchUpdatedGrid = new Grid({ serialized: this.toString() });
 	}
 
 	public commit() {
@@ -125,7 +136,7 @@ export class Grid {
 				}
 			}
 		} else {
-			if (this.grid[input[0]] != undefined && this.grid[input[0]][1] != undefined) {
+			if (this.grid[input[0]] != undefined && this.grid[input[0]][input[1]] != undefined) {
 				return new Cell(this, input, this.getValue(input));
 			} else {
 				return undefined;
@@ -169,13 +180,17 @@ export class Grid {
 			for (let j = 0; j < this.grid[0].length; ++j) {
 				str += this.grid[i][j];
 			}
-			str += "\n";
+			if (i < this.grid.length - 1) {
+				str += "\n";
+			}
 		}
 		return str;
 	}
 
-	public log() {
-		console.log(`Grid with ${this.grid.length} rows and ${this.grid[0].length} columns.`);
+	public log(printGridInfo: boolean = true) {
+		if (printGridInfo) {
+			console.log(`Grid with ${this.grid.length} rows and ${this.grid[0].length} columns.`);
+		}
 		for (let i = 0; i < this.grid.length; ++i) {
 			for (let j = 0; j < this.grid[0].length; ++j) {
 				const char = this.grid[i][j];
@@ -234,6 +249,10 @@ export class Cell {
 		return this.pos;
 	}
 
+	public get index() {
+		return this.pos[0] * this.grid.colCount + this.pos[1];
+	}
+
 	public north(count = 1) {
 		return this.grid.getCell([this.pos[0] - count, this.pos[1]]);
 	}
@@ -267,6 +286,22 @@ export class Cell {
 		}
 	}
 
+	public isNorthEdge() {
+		return this.north() == undefined;
+	}
+
+	public isEastEdge() {
+		return this.east() == undefined;
+	}
+
+	public isSouthEdge() {
+		return this.south() == undefined;
+	}
+
+	public isWestEdge() {
+		return this.west() == undefined;
+	}
+
 	public setValue(val: string) {
 		this.grid.setCell(this.pos, val);
 	}
@@ -293,9 +328,8 @@ if (require.main === module) {
 		}
 	}
 	console.log(`dot count: ${count} (expect 11)`);
-	const cellsThatHaveTwoDotNeighbors = Array.from(g).reduce(
-		(p, c) => p + (c.neighbors(true).filter(n => n.value === ".").length === 2 ? 1 : 0),
-		0
-	);
+	const cellsThatHaveTwoDotNeighbors = Array.from(g).filter(
+		c => c.neighbors(true).filter(n => n.value === ".").length === 2
+	).length;
 	console.log(`Num cells w/ 2 neighbors that are dots: ${cellsThatHaveTwoDotNeighbors} (expect 8)`);
 }
