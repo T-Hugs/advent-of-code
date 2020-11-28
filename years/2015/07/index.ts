@@ -82,15 +82,12 @@ async function p2015day7_part1(input: string) {
 					stillWaiting = true;
 				}
 			}
-			if (signals[output] != undefined) {
-				signals[output] = signals[output] & 0xffff;
-			}
 		}
 		if (!stillWaiting) {
 			break;
 		}
 	}
-	return signals["a"];
+	return signals["a"] & 0xffff;
 }
 
 async function p2015day7_part2(input: string) {
@@ -163,15 +160,12 @@ async function p2015day7_part2(input: string) {
 					stillWaiting = true;
 				}
 			}
-			if (signals[output] != undefined) {
-				signals[output] = signals[output] & 0xffff;
-			}
 		}
 		if (!stillWaiting) {
 			break;
 		}
 	}
-	return signals["a"];
+	return signals["a"] & 0xffff;
 }
 
 async function run() {
