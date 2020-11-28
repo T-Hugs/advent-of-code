@@ -16,11 +16,30 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/5
 
 async function p2015day5_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let nice = 0;
+	for (const line of lines) {
+		const has3vowels = /([aeiou]).*?([aeiou]).*?([aeiou])/.test(line);
+		const doubled = /(.)\1/.test(line);
+		const hasBad = /(ab)|(cd)|(pq)|(xy)/.test(line);
+		if (has3vowels && doubled && !hasBad) {
+			nice++;
+		}
+	}
+	return nice;
 }
 
 async function p2015day5_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let nice = 0;
+	for (const line of lines) {
+		const twopairs = /(..).*?(\1)/.test(line);
+		const sandwich = /(.).(\1)/.test(line);
+		if (twopairs && sandwich) {
+			nice++;
+		}
+	}
+	return nice;
 }
 
 async function run() {

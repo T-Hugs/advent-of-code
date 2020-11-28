@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { Grid } from "../../../util/grid";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
@@ -16,11 +17,81 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/6
 
 async function p2015day6_part1(input: string) {
-	return "Not implemented";
+	const grid = new Grid({ rowCount: 1000, colCount: 1000, fillWith: "." });
+	const lines = input.split("\n");
+	for (const line of lines) {
+		let action: "turn on" | "turn off" | "toggle" = "toggle";
+		if (line.startsWith("turn on")) {
+			action = "turn on";
+		} else if (line.startsWith("turn off")) {
+			action = "turn off";
+		} else if (line.startsWith("toggle")) {
+			action = "toggle";
+		} else {
+			throw new Error("unknown action");
+		}
+
+		const rest = line.substr(line.indexOf(action) + action.length).trim();
+		const [start, end] = rest.split(" through ").map(s => s.trim());
+		const [startx, starty] = start.split(",").map(Number);
+		const [endx, endy] = end.split(",").map(Number);
+
+		const cells = grid.getCells(
+			c => c.position[0] >= startx && c.position[0] <= endx && c.position[1] >= starty && c.position[1] <= endy
+		);
+		for (const cell of cells) {
+			if (action === "turn on") {
+				cell.setValue("#");
+			} else if (action === "turn off") {
+				cell.setValue(".");
+			} else {
+				if (cell.value === ".") {
+					cell.setValue("#");
+				} else {
+					cell.setValue(".");
+				}
+			}
+		}
+	}
+	return grid.getCells("#").length;
 }
 
 async function p2015day6_part2(input: string) {
-	return "Not implemented";
+	const grid = new Grid({ rowCount: 1000, colCount: 1000, fillWith: "0" });
+	const lines = input.split("\n");
+	for (const line of lines) {
+		let action: "turn on" | "turn off" | "toggle" = "toggle";
+		if (line.startsWith("turn on")) {
+			action = "turn on";
+		} else if (line.startsWith("turn off")) {
+			action = "turn off";
+		} else if (line.startsWith("toggle")) {
+			action = "toggle";
+		} else {
+			throw new Error("unknown action");
+		}
+
+		const rest = line.substr(line.indexOf(action) + action.length).trim();
+		const [start, end] = rest.split(" through ").map(s => s.trim());
+		const [startx, starty] = start.split(",").map(Number);
+		const [endx, endy] = end.split(",").map(Number);
+
+		const cells = grid.getCells(
+			c => c.position[0] >= startx && c.position[0] <= endx && c.position[1] >= starty && c.position[1] <= endy
+		);
+		for (const cell of cells) {
+			if (action === "turn on") {
+				cell.setValue(String(Number(cell.value) + 1));
+			} else if (action === "turn off") {
+				cell.setValue(String(Math.max(0, Number(cell.value) - 1)));
+			} else {
+				cell.setValue(String(Number(cell.value) + 2));
+			}
+		}
+	}
+	return Array.from(grid)
+		.map(c => Number(c.value))
+		.reduce((p, c) => p + c, 0);
 }
 
 async function run() {
@@ -28,7 +99,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day6_part1(testCase.input)));
@@ -46,10 +117,10 @@ async function run() {
 	const part1Solution = String(await p2015day6_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day6_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

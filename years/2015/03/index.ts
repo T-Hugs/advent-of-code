@@ -16,11 +16,72 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/3
 
 async function p2015day3_part1(input: string) {
-	return "Not implemented";
+	const moves = input.split("");
+	const visited = new Set<string>();
+	let currentPos = [0, 0];
+	for (const move of moves) {
+		visited.add(`${currentPos[0]},${currentPos[1]}`);
+		switch (move) {
+			case ">":
+				currentPos[1]++;
+				break;
+			case "<":
+				currentPos[1]--;
+				break;
+			case "v":
+				currentPos[0]++;
+				break;
+			case "^":
+				currentPos[0]--;
+				break;
+		}
+	}
+	return visited.size;
 }
 
 async function p2015day3_part2(input: string) {
-	return "Not implemented";
+	const moves = input.split("");
+	const visited = new Set<string>();
+	let santaPos = [0, 0];
+	let roboPos = [0, 0];
+	let turn = false;
+	for (const move of moves) {
+		visited.add(`${santaPos[0]},${santaPos[1]}`);
+		visited.add(`${roboPos[0]},${roboPos[1]}`);
+		if (turn) {
+			switch (move) {
+				case ">":
+					santaPos[1]++;
+					break;
+				case "<":
+					santaPos[1]--;
+					break;
+				case "v":
+					santaPos[0]++;
+					break;
+				case "^":
+					santaPos[0]--;
+					break;
+			}
+		} else {
+			switch (move) {
+				case ">":
+					roboPos[1]++;
+					break;
+				case "<":
+					roboPos[1]--;
+					break;
+				case "v":
+					roboPos[0]++;
+					break;
+				case "^":
+					roboPos[0]--;
+					break;
+			}
+		}
+		turn = !turn;
+	}
+	return visited.size;
 }
 
 async function run() {
@@ -28,7 +89,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day3_part1(testCase.input)));
@@ -46,10 +107,10 @@ async function run() {
 	const part1Solution = String(await p2015day3_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day3_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

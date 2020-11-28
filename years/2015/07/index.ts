@@ -16,22 +16,185 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/7
 
 async function p2015day7_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const signals: { [name: string]: number } = {};
+	while (true) {
+		let stillWaiting = false;
+		for (const line of lines) {
+			const [input, output] = line.split("->").map(x => x.trim());
+			if (input.includes("AND")) {
+				const operation = "AND";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs & rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("OR")) {
+				const operation = "OR";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs | rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("LSHIFT")) {
+				const operation = "LSHIFT";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs << rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("RSHIFT")) {
+				const operation = "RSHIFT";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs >> rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("NOT")) {
+				const operand = input.substr(4);
+				const value = Number.isNaN(Number(operand)) ? signals[operand] : Number(operand);
+				if (value != undefined) {
+					signals[output] = ~value;
+				} else {
+					stillWaiting = true;
+				}
+			} else {
+				const lhs = Number.isNaN(Number(input)) ? signals[input] : Number(input);
+				if (lhs != undefined) {
+					signals[output] = lhs;
+				} else {
+					stillWaiting = true;
+				}
+			}
+			if (signals[output] != undefined) {
+				signals[output] = signals[output] & 0xffff;
+			}
+		}
+		if (!stillWaiting) {
+			break;
+		}
+	}
+	return signals["a"];
 }
 
 async function p2015day7_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const signals: { [name: string]: number } = {b: await p2015day7_part1(input)};
+	while (true) {
+		let stillWaiting = false;
+		for (const line of lines) {
+			const [input, output] = line.split("->").map(x => x.trim());
+			if (input.includes("AND")) {
+				const operation = "AND";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs & rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("OR")) {
+				const operation = "OR";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs | rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("LSHIFT")) {
+				const operation = "LSHIFT";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs << rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("RSHIFT")) {
+				const operation = "RSHIFT";
+				const [lhs, rhs] = input
+					.split(operation)
+					.map(v => v.trim())
+					.map(v => (Number.isNaN(Number(v)) ? signals[v] : Number(v)));
+				if (lhs != undefined && rhs != undefined) {
+					signals[output] = lhs >> rhs;
+				} else {
+					stillWaiting = true;
+				}
+			} else if (input.includes("NOT")) {
+				const operand = input.substr(4);
+				const value = Number.isNaN(Number(operand)) ? signals[operand] : Number(operand);
+				if (value != undefined) {
+					signals[output] = ~value;
+				} else {
+					stillWaiting = true;
+				}
+			} else {
+				if (output === "b") {
+					continue;
+				}
+				const lhs = Number.isNaN(Number(input)) ? signals[input] : Number(input);
+				if (lhs != undefined) {
+					signals[output] = lhs;
+				} else {
+					stillWaiting = true;
+				}
+			}
+			if (signals[output] != undefined) {
+				signals[output] = signals[output] & 0xffff;
+			}
+		}
+		if (!stillWaiting) {
+			break;
+		}
+	}
+	return signals["a"];
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `123 -> x
+456 -> y
+x AND y -> d
+x OR y -> e
+x LSHIFT 2 -> f
+y RSHIFT 2 -> g
+NOT x -> h
+NOT y -> i`,
+			expected: `undefined`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
-		test.logTestResult(testCase, String(await p2015day7_part1(testCase.input)));
+		//test.logTestResult(testCase, String(await p2015day7_part1(testCase.input)));
 	}
 	test.beginSection();
 	for (const testCase of part2tests) {
@@ -46,10 +209,10 @@ async function run() {
 	const part1Solution = String(await p2015day7_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day7_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

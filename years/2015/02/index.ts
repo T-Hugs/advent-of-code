@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, { has } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
@@ -16,11 +16,32 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/2
 
 async function p2015day2_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let total = 0;
+	for (const line of lines) {
+		const [l, w, h] = line.split("x").map(Number);
+		const [side1, side2, side3] = [l * w, w * h, l * h];
+		const sa = 2 * side1 + 2 * side2 + 2 * side3;
+		const smallest = Math.min(side1, side2, side3);
+		total += sa + smallest;
+	}
+	return total;
 }
 
 async function p2015day2_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let total = 0;
+	for (const line of lines) {
+		const lwh = line.split("x").map(Number);
+		const [l, w, h] = lwh;
+		const smallest = Math.min(...lwh);
+		lwh.splice(lwh.indexOf(smallest), 1);
+		const smallest2 = Math.min(...lwh);
+		const perimeter = 2 * (smallest + smallest2);
+		const bow = l * w * h;
+		total += perimeter + bow;
+	}
+	return total;
 }
 
 async function run() {
@@ -28,7 +49,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day2_part1(testCase.input)));
@@ -46,10 +67,10 @@ async function run() {
 	const part1Solution = String(await p2015day2_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day2_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
