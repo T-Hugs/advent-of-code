@@ -15,12 +15,46 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/11/data.txt
 // problem url  : https://adventofcode.com/2015/day/11
 
+function getNext(str: string) {
+	let result = str.split("");
+	for (let i = str.length - 1; i >= 0; --i) {
+		if (str[i] === "z") {
+			result[i] = "a";
+		} else {
+			result[i] = String.fromCharCode(str[i].charCodeAt(0) + 1);
+			break;
+		}
+	}
+	return result.join("");
+}
+function isGood(str: string) {
+	const strAsNums = str.split("").map(c => c.charCodeAt(0));
+	let test1 = false;
+	for (let i = 2; i < strAsNums.length; ++i) {
+		if (strAsNums[i] === strAsNums[i - 1] + 1 && strAsNums[i] === strAsNums[i - 2] + 2) {
+			test1 = true;
+			break;
+		}
+	}
+	const test2 = !/[iol]/.test(str);
+	const test3 = /(.)\1.*?(.)\2/.test(str);
+
+	return test1 && test2 && test3;
+}
 async function p2015day11_part1(input: string) {
-	return "Not implemented";
+	let nextPw = getNext(input);
+	while (!isGood(nextPw)) {
+		nextPw = getNext(nextPw);
+	}
+	return nextPw;
 }
 
 async function p2015day11_part2(input: string) {
-	return "Not implemented";
+	let nextPw = getNext(await p2015day11_part1(input));
+	while (!isGood(nextPw)) {
+		nextPw = getNext(nextPw);
+	}
+	return nextPw;
 }
 
 async function run() {
@@ -28,7 +62,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day11_part1(testCase.input)));
@@ -46,10 +80,10 @@ async function run() {
 	const part1Solution = String(await p2015day11_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day11_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

@@ -15,20 +15,54 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/12/data.txt
 // problem url  : https://adventofcode.com/2015/day/12
 
+function countNumbers(obj: any, ignoreRed: boolean = false) {
+	if (typeof obj === "number") {
+		return obj;
+	}
+	if (typeof obj === "string") {
+		return 0;
+	}
+	let sum = 0;
+	if (Array.isArray(obj)) {
+		for (const elem of obj) {
+			sum += countNumbers(elem, ignoreRed);
+		}
+		return sum;
+	}
+	const vals = Object.values(obj);
+	if (ignoreRed && vals.includes("red")) {
+		return 0;
+	}
+	for (const elem of vals) {
+		sum += countNumbers(elem, ignoreRed);
+	}
+	return sum;
+}
 async function p2015day12_part1(input: string) {
-	return "Not implemented";
+	const obj = JSON.parse(input);
+	return countNumbers(obj);
 }
 
 async function p2015day12_part2(input: string) {
-	return "Not implemented";
+	const obj = JSON.parse(input);
+	return countNumbers(obj, true);
 }
 
 async function run() {
 	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [
+		{
+			input: `{"d":"red","e":[1,2,3,4],"f":5}`,
+			expected: `0`,
+		},
+		{
+			input: `[1,{"c":"red","b":2},3]`,
+			expected: `4`,
+		},
+	];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day12_part1(testCase.input)));
@@ -46,10 +80,10 @@ async function run() {
 	const part1Solution = String(await p2015day12_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day12_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

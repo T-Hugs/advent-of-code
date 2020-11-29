@@ -15,12 +15,53 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/14/data.txt
 // problem url  : https://adventofcode.com/2015/day/14
 
+function getDistanceTraveled(time: number, speed: number, duration: number, rest: number) {
+	const period = duration + rest;
+	const fullPeriods = Math.floor(time / period);
+	const remaining = time % period;
+	const distanceFromFull = speed * duration * fullPeriods;
+	const distanceFromRemaining = speed * Math.min(remaining, duration);
+	return distanceFromFull + distanceFromRemaining;
+}
+
 async function p2015day14_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const deer: { [name: string]: [number, number, number] } = {};
+	for (const line of lines) {
+		const name = line.split(" ")[0];
+		const [speed, duration, rest] = /(\d+).*?(\d+).*?(\d+)/.exec(line)!.slice(1, 4).map(Number);
+		deer[name] = [speed, duration, rest];
+	}
+	const time = 2503;
+	const distances: { [name: string]: number } = {};
+	for (const name of Object.keys(deer)) {
+		distances[name] = getDistanceTraveled(time, ...deer[name]);
+	}
+	return Math.max(...Object.values(distances));
 }
 
 async function p2015day14_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const deer: { [name: string]: [number, number, number] } = {};
+	for (const line of lines) {
+		const name = line.split(" ")[0];
+		const [speed, duration, rest] = /(\d+).*?(\d+).*?(\d+)/.exec(line)!.slice(1, 4).map(Number);
+		deer[name] = [speed, duration, rest];
+	}
+	const time = 2503;
+	const points: { [name: string]: number } = {};
+	for (let i = 1; i < time; ++i) {
+		const resultsForSecond = Object.fromEntries(
+			Object.keys(deer).map(n => [n, getDistanceTraveled(i, ...deer[n])])
+		);
+		const leadDistance = Math.max(...Object.values(resultsForSecond));
+		const winner = Object.keys(deer).find(d => resultsForSecond[d] === leadDistance)!;
+		if (!points[winner]) {
+			points[winner] = 0;
+		}
+		points[winner]++
+	}
+	return Math.max(...Object.values(points));
 }
 
 async function run() {
@@ -28,7 +69,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day14_part1(testCase.input)));
@@ -46,10 +87,10 @@ async function run() {
 	const part1Solution = String(await p2015day14_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day14_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

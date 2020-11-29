@@ -16,11 +16,31 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/10
 
 async function p2015day10_part1(input: string) {
-	return "Not implemented";
+	let answer = input;
+	for (let i = 0; i < 40; ++i) {
+		let result = "";
+		while (answer.length > 0) {
+			const match = /^(.)\1*/.exec(answer)![0];
+			result += String(match.length) + match[0];
+			answer = answer.substr(match.length);
+		}
+		answer = result;
+	}
+	return answer.length;
 }
 
 async function p2015day10_part2(input: string) {
-	return "Not implemented";
+	let answer = input;
+	for (let i = 0; i < 50; ++i) {
+		let result = "";
+		while (answer.length > 0) {
+			const match = /^(.)\1*/.exec(answer)![0];
+			result += String(match.length) + match[0];
+			answer = answer.substr(match.length);
+		}
+		answer = result;
+	}
+	return answer.length;
 }
 
 async function run() {

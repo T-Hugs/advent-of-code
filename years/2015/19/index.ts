@@ -17,7 +17,7 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/19/data.txt
 // problem url  : https://adventofcode.com/2015/day/19
 
-let neighborMemo: {[molecule: string]: string[]} = {};
+let neighborMemo: { [molecule: string]: string[] } = {};
 function getNeighbors(molecule: string, replacements: { [lhs: string]: string[] }) {
 	if (neighborMemo[molecule]) {
 		return neighborMemo[molecule];
@@ -89,20 +89,11 @@ async function p2015day19_part2(input: string) {
 	}
 	const options = {
 		start: molecule,
-		isEnd: (node: string) => {
-			return node === "e"
-		},
-		neighbor: (node: string) => {
-			const neighbors = getNeighbors(node, replacements);
-			return neighbors;
-		},
-		distance: () => {
-			return 1;
-		},
-		heuristic: (node: string) => {
-			return levenshtein.get(node, "e");
-		}
-	}
+		isEnd: (node: string) => node === "e",
+		neighbor: (node: string) => getNeighbors(node, replacements),
+		heuristic: (node: string) => levenshtein.get(node, "e"),
+		distance: () => 1
+	};
 	const path = aStar(options);
 	return path.path.length - 1;
 }
@@ -168,7 +159,7 @@ HOHOHO`,
 	const part1Solution = String(await p2015day19_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day19_part2(input));
 	const part2After = performance.now();
 

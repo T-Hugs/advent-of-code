@@ -16,16 +16,44 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/8
 
 async function p2015day8_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const codeChars = input.length - (lines.length - 1);
+	let regChars = 0;
+	for (const line of lines) {
+		const noSurroundingQuotes = line.slice(1, line.length - 1);
+		const quotesAndBackslashes = util.replaceAll(noSurroundingQuotes, {"\\\\": "\\", "\\\"": "\""});
+		const ascii = quotesAndBackslashes.replace(/\\x([0-9a-f]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
+		regChars += ascii.split("").length;
+	}
+	return codeChars - regChars;
 }
 
 async function p2015day8_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const codeChars = input.length - (lines.length - 1);
+	let newChars = 0;
+	for (const line of lines) {
+		const newStr = line.replace(/([\\\"])/g, m => "\\" + m);
+		newChars += newStr.length + 2;
+	}
+	return newChars - codeChars;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `""
+"abc"
+"aaa\\"aaa"
+"\\x27"`,
+		expected: `12`
+	}];
+	const part2tests: TestCase[] = [{
+		input: `""
+"abc"
+"aaa\\"aaa"
+"\\x27"`,
+		expected: `19`
+	}];
 
 	// Run tests
 	test.beginTests()

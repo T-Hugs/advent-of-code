@@ -16,15 +16,70 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/9
 
 async function p2015day9_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const cities: {[city: string]: {[city: string]: number}} = {};
+	for (const line of lines) {
+		const [segment, _distance] = line.split(" = ");
+		const distance = Number(_distance);
+		const [start, end] = segment.split(" to ");
+		if (!cities[start]) {
+			cities[start] = {};
+		}
+		if (!cities[end]) {
+			cities[end] = {}
+		}
+		cities[start][end] = distance;
+		cities[end][start] = distance;
+	}
+
+	const cityOrders = util.getPermutations(Object.keys(cities));
+	
+	function routeLength(route: string[]) {
+		let length = 0;
+		for (let i = 1; i < route.length; ++i) {
+			length += cities[route[i-1]][route[i]];
+		}
+		return length;
+	}
+	return Math.min(...cityOrders.map(routeLength));
 }
 
 async function p2015day9_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const cities: {[city: string]: {[city: string]: number}} = {};
+	for (const line of lines) {
+		const [segment, _distance] = line.split(" = ");
+		const distance = Number(_distance);
+		const [start, end] = segment.split(" to ");
+		if (!cities[start]) {
+			cities[start] = {};
+		}
+		if (!cities[end]) {
+			cities[end] = {}
+		}
+		cities[start][end] = distance;
+		cities[end][start] = distance;
+	}
+
+	const cityOrders = util.getPermutations(Object.keys(cities));
+	
+	function routeLength(route: string[]) {
+		let length = 0;
+		for (let i = 1; i < route.length; ++i) {
+			length += cities[route[i-1]][route[i]];
+		}
+		return length;
+	}
+	return Math.max(...cityOrders.map(routeLength));
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `London to Dublin = 464
+London to Belfast = 518
+Dublin to Belfast = 141`,
+		expected: `605`
+	}];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
