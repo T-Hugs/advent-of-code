@@ -302,6 +302,15 @@ export class Cell {
 		return this.west() == undefined;
 	}
 
+	public isCorner() {
+		return (
+			(this.isNorthEdge() && this.isEastEdge()) ||
+			(this.isNorthEdge() && this.isWestEdge()) ||
+			(this.isSouthEdge() && this.isEastEdge()) ||
+			(this.isSouthEdge() && this.isWestEdge())
+		);
+	}
+
 	public setValue(val: string) {
 		this.grid.setCell(this.pos, val);
 	}

@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { Cell, Grid } from "../../../util/grid";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
@@ -16,11 +17,57 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/18
 
 async function p2015day18_part1(input: string) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+	for (let i = 0; i < 100; ++i) {
+		grid.batchUpdates();
+
+		for (const cell of grid) {
+			const neighbors = cell.neighbors(true);
+			const litNeighbors = neighbors.filter(c => c.value === "#").length;
+			if (cell.value === "#") {
+				if (!(litNeighbors === 2 || litNeighbors === 3)) {
+					cell.setValue(".");
+				}
+			} else {
+				if (litNeighbors === 3) {
+					cell.setValue("#");
+				}
+			}
+		}
+
+		grid.commit();
+	}
+	return Array.from(grid).filter(c => c.value === "#").length;
 }
 
 async function p2015day18_part2(input: string) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+	for (const cell of grid.getCells(c => c.isCorner())) {
+		cell.setValue("#");
+	}
+	for (let i = 0; i < 100; ++i) {
+		grid.batchUpdates();
+
+		for (const cell of grid) {
+			if (cell.isCorner()) {
+				continue;
+			}
+			const neighbors = cell.neighbors(true);
+			const litNeighbors = neighbors.filter(c => c.value === "#").length;
+			if (cell.value === "#") {
+				if (!(litNeighbors === 2 || litNeighbors === 3)) {
+					cell.setValue(".");
+				}
+			} else {
+				if (litNeighbors === 3) {
+					cell.setValue("#");
+				}
+			}
+		}
+
+		grid.commit();
+	}
+	return Array.from(grid).filter(c => c.value === "#").length;
 }
 
 async function run() {
@@ -28,7 +75,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day18_part1(testCase.input)));
@@ -46,10 +93,10 @@ async function run() {
 	const part1Solution = String(await p2015day18_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day18_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

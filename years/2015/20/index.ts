@@ -15,12 +15,58 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/20/data.txt
 // problem url  : https://adventofcode.com/2015/day/20
 
+function sumOfFactors(n: number) {
+	let result = 1;
+	for (let i = 2; i < Math.floor(Math.sqrt(n) + 1); ++i) {
+		let currentSum = 1;
+		let currentTerm = 1;
+		while (n % i === 0) {
+			n = n / i;
+			currentTerm = currentTerm * i;
+			currentSum += currentTerm;
+		}
+		result = result * currentSum;
+	}
+	if (n > 2) {
+		result = result * (1 + n);
+	}
+	return result;
+}
+
+function sumOfBigFactors(n: number) {
+	const factors: Set<number> = new Set();
+	for (let i = 1; i < Math.floor(Math.sqrt(n) + 1); ++i) {
+		if (n % i === 0) {
+			const f2 = n / i;
+			factors.add(i);
+			factors.add(f2);
+		}
+	}
+	const bigFactors = Array.from(factors).filter(f => f * 50 >= n);
+	return bigFactors.reduce((p, c) => p + c, 0);
+}
+
 async function p2015day20_part1(input: string) {
-	return "Not implemented";
+	const threshold = Number(input);
+	for (let i = 1; ; ++i) {
+		const factorSum = sumOfFactors(i);
+		const presents = factorSum * 10;
+		if (presents >= threshold) {
+			console.log("Done");
+			return i;
+		}
+	}
 }
 
 async function p2015day20_part2(input: string) {
-	return "Not implemented";
+	const threshold = Number(input);
+	for (let i = 665280; ; ++i) {
+		const factorSum = sumOfBigFactors(i);
+		const presents = factorSum * 11;
+		if (presents >= threshold) {
+			return i;
+		}
+	}
 }
 
 async function run() {
@@ -28,7 +74,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day20_part1(testCase.input)));
@@ -46,10 +92,10 @@ async function run() {
 	const part1Solution = String(await p2015day20_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day20_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

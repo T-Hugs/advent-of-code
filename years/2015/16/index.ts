@@ -15,12 +15,101 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/16/data.txt
 // problem url  : https://adventofcode.com/2015/day/16
 
+interface Sue {
+	children?: number;
+	cats?: number;
+	samoyeds?: number;
+	pomeranians?: number;
+	akitas?: number;
+	vizslas?: number;
+	goldfish?: number;
+	trees?: number;
+	cars?: number;
+	perfumes?: number;
+}
+type Reading = Required<Sue>;
 async function p2015day16_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const sues: Sue[] = [];
+	for (const line of lines) {
+		const split = line.replace(/,/g, "").split(" ").slice(2);
+		const sue: Sue = {};
+		for (let i = 0; i < split.length; i += 2) {
+			sue[split[i].slice(0, -1) as keyof Sue] = Number(split[i + 1]);
+		}
+		sues.push(sue);
+	}
+	const reading: Reading = {
+		children: 3,
+		cats: 7,
+		samoyeds: 2,
+		pomeranians: 3,
+		akitas: 0,
+		vizslas: 0,
+		goldfish: 5,
+		trees: 3,
+		cars: 2,
+		perfumes: 1,
+	};
+
+	for (let i = 0; i < sues.length; ++i) {
+		if ((Object.keys(sues[i]) as (keyof Sue)[]).every(p => reading[p] === sues[i][p])) {
+			return i + 1;
+		}
+	}
 }
 
 async function p2015day16_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const sues: Sue[] = [];
+	for (const line of lines) {
+		const split = line.replace(/,/g, "").split(" ").slice(2);
+		const sue: Sue = {};
+		for (let i = 0; i < split.length; i += 2) {
+			sue[split[i].slice(0, -1) as keyof Sue] = Number(split[i + 1]);
+		}
+		sues.push(sue);
+	}
+	const reading: Reading = {
+		children: 3,
+		cats: 7,
+		samoyeds: 2,
+		pomeranians: 3,
+		akitas: 0,
+		vizslas: 0,
+		goldfish: 5,
+		trees: 3,
+		cars: 2,
+		perfumes: 1,
+	};
+
+	for (let i = 0; i < sues.length; ++i) {
+		const sue = sues[i];
+		let good = true;
+		for (const prop of Object.keys(reading) as (keyof Sue)[]) {
+			if (sue[prop] != undefined) {
+				if (prop === "cats" || prop === "trees") {
+					if (sue[prop]! <= reading[prop]) {
+						good = false;
+						break;
+					}
+				} else if (prop === "pomeranians" || prop === "goldfish") {
+					if (sue[prop]! >= reading[prop]) {
+						good = false;
+						break;
+					}
+				} else {
+					if (sue[prop] !== reading[prop]) {
+						good = false;
+						break;
+					}
+				}
+			}
+		}
+		if (good) {
+			return i + 1;
+		}
+	}
 }
 
 async function run() {
@@ -28,7 +117,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day16_part1(testCase.input)));
@@ -46,10 +135,10 @@ async function run() {
 	const part1Solution = String(await p2015day16_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2015day16_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

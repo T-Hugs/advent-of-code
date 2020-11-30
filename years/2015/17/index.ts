@@ -16,11 +16,19 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/17
 
 async function p2015day17_part1(input: string) {
-	return "Not implemented";
+	const capacities = input.split("\n").map(Number);
+	const target = 150;
+	const combinations = util.powerSet(capacities);
+	return combinations.filter(c => c.reduce((p, c) => p + c, 0) === target).length;
 }
 
 async function p2015day17_part2(input: string) {
-	return "Not implemented";
+	const capacities = input.split("\n").map(Number);
+	const target = 150;
+	const combinations = util.powerSet(capacities);
+	const goodCombos = combinations.filter(c => c.reduce((p, c) => p + c, 0) === target);
+	const fewest = _.minBy(goodCombos, combination => combination.length)!.length;
+	return goodCombos.filter(c => c.length === fewest).length;
 }
 
 async function run() {
