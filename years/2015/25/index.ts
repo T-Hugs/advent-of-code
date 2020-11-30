@@ -15,27 +15,35 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2015/25/data.txt
 // problem url  : https://adventofcode.com/2015/day/25
 
-async function p2015day25_part1(input: string) {
-	return "Not implemented";
+function getRowColIndex(row: number, col: number) {
+	const newRow = row + (col - 1);
+	return (Math.pow(newRow - 1, 2) + (newRow - 1)) / 2 + 1 + (col - 1);
 }
 
-async function p2015day25_part2(input: string) {
-	return "Not implemented";
+async function p2015day25_part1(input: string) {
+	const [row, col] = /(\d+).*?(\d+)/.exec(input)!.slice(1, 3).map(Number);
+	const pwIndex = getRowColIndex(row, col);
+	const startAt = 20151125;
+	const mul = 252533;
+	const div = 33554393;
+
+	// lol slow
+	let val = startAt;
+	for (let i = 0; i < pwIndex - 1; ++i) {
+		val = (val * mul) % div;
+	}
+
+	return val;
 }
 
 async function run() {
 	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day25_part1(testCase.input)));
-	}
-	test.beginSection();
-	for (const testCase of part2tests) {
-		test.logTestResult(testCase, String(await p2015day25_part2(testCase.input)));
 	}
 	test.endTests();
 
@@ -46,15 +54,10 @@ async function run() {
 	const part1Solution = String(await p2015day25_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
-	const part2Solution = String(await p2015day25_part2(input));
-	const part2After = performance.now();
-	
-	logSolution(part1Solution, part2Solution);
+	logSolution(part1Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
-	log(chalk.gray(`Part 2: ${util.msToString(part2After - part2Before)}`));
 	log();
 }
 

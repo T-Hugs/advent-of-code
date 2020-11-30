@@ -26,6 +26,7 @@
 		"a-star": "^0.2.0",
 		"chalk": "^4.1.0",
 		"fast-levenshtein": "^3.0.0",
+		"js-combinatorics": "^1.4.5",
 		"lodash": "^4.17.20",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",

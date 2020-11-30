@@ -149,3 +149,43 @@ export function powerSet<T>(inputArr: T[], settings: { proper?: boolean; nonEmpt
 	}
 	return result;
 }
+
+// Note: doesn't work great for duplicate values in the input array
+export function* getSumSubsets(elems: number[], target: number, level: number = 0): Generator<number[] | undefined> {
+	const generated: number[][] = [];
+	if (target === 0) {
+		yield [];
+	} else if (target < 0) {
+		yield undefined;
+	} else {
+		for (let i = 0; i < elems.length; ++i) {
+			const elem = elems[i];
+			const reducedSubsets = getSumSubsets([...elems.slice(0, i), ...elems.slice(i + 1)], target - elem, level + 1);
+			for (const subset of reducedSubsets) {
+				if (subset) {
+					const next = [elem, ...subset];
+					let alreadyGenerated = false;
+					for (const gen of generated) {
+						const genCopy = [...gen];
+						for (const i of next) {
+							const itemIndex = genCopy.indexOf(i);
+							if (itemIndex >= 0) {
+								genCopy.splice(itemIndex, 1);
+							} else {
+								break;
+							}
+						}
+						alreadyGenerated = genCopy.length === 0;
+						if (alreadyGenerated) {
+							break;
+						}
+					}
+					if (!alreadyGenerated) {
+						generated.push(next);
+						yield next;
+					}
+				}
+			}
+		}
+	}
+}
