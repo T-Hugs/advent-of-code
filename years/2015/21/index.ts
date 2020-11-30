@@ -93,10 +93,10 @@ async function p2015day21_part1(input: string) {
 		let turn = "player";
 		while (player_hp > 0 && boss_hp > 0) {
 			if (turn === "player") {
-				boss_hp -= player_damage - starting_boss_armor;
+				boss_hp -= Math.max(1, player_damage - starting_boss_armor);
 				turn = "boss";
 			} else {
-				player_hp -= starting_boss_damage - player_armor;
+				player_hp -= Math.max(1, starting_boss_damage - player_armor);
 				turn = "player";
 			}
 		}
@@ -124,10 +124,10 @@ async function p2015day21_part2(input: string) {
 		let turn = "player";
 		while (player_hp > 0 && boss_hp > 0) {
 			if (turn === "player") {
-				boss_hp -= player_damage - starting_boss_armor;
+				boss_hp -= Math.max(1, player_damage - starting_boss_armor);
 				turn = "boss";
 			} else {
-				player_hp -= starting_boss_damage - player_armor;
+				player_hp -= Math.max(1, starting_boss_damage - player_armor);
 				turn = "player";
 			}
 		}
