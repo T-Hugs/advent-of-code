@@ -4,6 +4,8 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+
+import { Combination } from "js-combinatorics/commonjs/combinatorics";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
@@ -16,11 +18,31 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/1
 
 async function p2020day1_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n").map(Number);
+
+	for (let i = 0; i < lines.length; ++i) {
+		for (let j = i + 1; j < lines.length; ++j) {
+			
+				if (lines[i] + lines[j] === 2020) {
+					return lines[i] * lines[j];
+				}
+			
+		}
+	}
 }
 
 async function p2020day1_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n").map(Number);
+
+	for (let i = 0; i < lines.length; ++i) {
+		for (let j = i + 1; j < lines.length; ++j) {
+			for (let k = j + 1; k < lines.length; ++k) {
+				if (lines[i] + lines[j] + lines[k] === 2020) {
+					return lines[i] * lines[j] * lines[k];
+				}
+			}
+		}
+	}
 }
 
 async function run() {
@@ -28,7 +50,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2020day1_part1(testCase.input)));
@@ -46,11 +68,11 @@ async function run() {
 	const part1Solution = String(await p2020day1_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day1_part2(input));
 	const part2After = performance.now();
-	
-	logSolution(part1Solution, part2Solution);
+
+	logSolution(1, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));

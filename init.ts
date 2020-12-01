@@ -5,7 +5,7 @@ import { LocalStorage } from "node-localstorage";
 import * as path from "path";
 import mkdirp from "mkdirp";
 import * as fs from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync, mkdir } from "fs";
 
 interface Settings {
 	pristine: boolean;
@@ -257,7 +257,7 @@ async function seed(year: number) {
 			"{data_path}": getDataPath(day, year),
 			"{problem_url}": getProblemUrl(day, year),
 		};
-
+		await mkdirp(path.dirname(solutionPath));
 		let doesNotExistOrIsUnchanged = !existsSync(solutionPath);
 		if (!doesNotExistOrIsUnchanged) {
 			const compareTemplate = await getCompareTemplate();
