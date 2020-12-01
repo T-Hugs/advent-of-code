@@ -14,17 +14,8 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2015/day/1
 
 async function p2015day1_part1(input: string) {
-	let lc = 0;
-	let rc = 0;
-	for (let i = 0; i < input.length; ++i) {
-		if (input[i] === "(") {
-			lc++
-		}
-		if (input[i] === ")") {
-			rc++;
-		}
-	}
-	return lc - rc;
+	const count = util.countUniqueElements(input);
+	return (count["("] ?? 0) - (count[")"] ?? 0);
 }
 
 async function p2015day1_part2(input: string) {
@@ -32,7 +23,7 @@ async function p2015day1_part2(input: string) {
 	let rc = 0;
 	for (let i = 0; i < input.length; ++i) {
 		if (input[i] === "(") {
-			lc++
+			lc++;
 		}
 		if (input[i] === ")") {
 			rc++;
@@ -47,54 +38,54 @@ async function run() {
 	const part1tests: TestCase[] = [
 		{
 			input: `(())`,
-			expected: `0`
+			expected: `0`,
 		},
 		{
 			input: `()()`,
-			expected: `0`
+			expected: `0`,
 		},
 		{
 			input: `(((`,
-			expected: `3`
+			expected: `3`,
 		},
 		{
 			input: `(()(()(`,
-			expected: `3`
+			expected: `3`,
 		},
 		{
 			input: `))(((((`,
-			expected: `3`
+			expected: `3`,
 		},
 		{
 			input: `())`,
-			expected: `-1`
+			expected: `-1`,
 		},
 		{
 			input: `))(`,
-			expected: `-1`
+			expected: `-1`,
 		},
 		{
 			input: `)))`,
-			expected: `-3`
+			expected: `-3`,
 		},
 		{
 			input: `)())())`,
-			expected: `-3`
+			expected: `-3`,
 		},
 	];
 	const part2tests: TestCase[] = [
 		{
 			input: `)`,
-			expected: `1`
+			expected: `1`,
 		},
 		{
 			input: `()())`,
-			expected: `5`
+			expected: `5`,
 		},
 	];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day1_part1(testCase.input)));

@@ -1,4 +1,10 @@
 import chalk from "chalk";
+import { LocalStorage } from "node-localstorage";
+import path from "path";
+import { getAppRoot } from "./util";
+
+const appRoot = getAppRoot();
+const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
 
 let DEBUG = false;
 
@@ -32,7 +38,7 @@ export function trace(...params: any[]) {
 	}
 }
 
-export function logSolution(part1: string, part2?: string) {
+export function logSolution(year: number, day: number, part1: string, part2?: string) {
 	const part1Text =
 		part1 === "Not implemented"
 			? chalk.black.bgYellowBright(` ${part1} `)

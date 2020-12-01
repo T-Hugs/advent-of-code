@@ -160,7 +160,11 @@ export function* getSumSubsets(elems: number[], target: number, level: number = 
 	} else {
 		for (let i = 0; i < elems.length; ++i) {
 			const elem = elems[i];
-			const reducedSubsets = getSumSubsets([...elems.slice(0, i), ...elems.slice(i + 1)], target - elem, level + 1);
+			const reducedSubsets = getSumSubsets(
+				[...elems.slice(0, i), ...elems.slice(i + 1)],
+				target - elem,
+				level + 1
+			);
 			for (const subset of reducedSubsets) {
 				if (subset) {
 					const next = [elem, ...subset];
@@ -188,4 +192,20 @@ export function* getSumSubsets(elems: number[], target: number, level: number = 
 			}
 		}
 	}
+}
+
+export function countUniqueElements(
+	iterable: Iterable<string>
+): {
+	[elem: string]: number;
+} {
+	const result: { [elem: string]: number } = {};
+	for (const elem of iterable) {
+		if (!result[elem]) {
+			result[elem] = 1;
+		} else {
+			result[elem]++;
+		}
+	}
+	return result;
 }
