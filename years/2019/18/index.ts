@@ -50,7 +50,7 @@ async function run() {
 	const part2Solution = String(await p2019day18_part2(input));
 	const part2After = performance.now();
 	
-	logSolution(part1Solution, part2Solution);
+	logSolution(18, 2019, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));

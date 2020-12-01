@@ -40,6 +40,17 @@ export async function wait(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function getLatestPuzzleDate(asOf = new Date()) {
+	const asUTC = new Date(asOf.getTime() + asOf.getTimezoneOffset() * 60 * 1000);
+	const asEST = new Date(asUTC.getTime() - 5 * 60 * 60 * 1000);
+	const isDecember = asEST.getMonth() === 11;
+	const currentYear = asEST.getFullYear();
+	const latestPuzzleYear = isDecember ? currentYear : currentYear - 1;
+	const currentDay = asEST.getDate();
+	const latestPuzzleDay = isDecember ? Math.min(currentDay, 25) : 25;
+	return { day: latestPuzzleDay, year: latestPuzzleYear };
+}
+
 // Use this if we move back to ESM
 // export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -70,12 +81,20 @@ export async function getInput(day: number, year: number, rootDir = path.join(ge
 	return fs.readFile(path.join(dayRoot, "data.txt"), "utf-8");
 }
 
+export function clamp(val: number, min: number, max: number) {
+    return Math.max(Math.min(val, max), min);
+}
+
 // The % operator in JS is the remainder operator. The below function
 // implements modulus. The two give the same output for positive values
 // of the left-operand, but different for negative values.
 // @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder
-export function mod(_a: number | bigint, _n: number | bigint) {
+export function bigIntMod(_a: number | bigint, _n: number | bigint) {
 	const [a, n] = [_a, _n].map(BigInt);
+	return ((a % n) + n) % n;
+}
+
+export function mod(a: number, n: number) {
 	return ((a % n) + n) % n;
 }
 

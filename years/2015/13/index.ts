@@ -40,7 +40,7 @@ async function p2015day13_part1(input: string) {
 		let totalHappiness = 0;
 		for (let i = 0; i < arrangement.length; ++i) {
 			let next = (i + 1) % arrangement.length;
-			let prev = Number(util.mod(i - 1, arrangement.length));
+			let prev = Number(util.bigIntMod(i - 1, arrangement.length));
 			const nextHappiness = names[arrangement[i]][arrangement[next]];
 			const prevHappiness = names[arrangement[i]][arrangement[prev]];
 			totalHappiness += nextHappiness + prevHappiness;
@@ -91,7 +91,7 @@ async function p2015day13_part2(input: string) {
 		let totalHappiness = 0;
 		for (let i = 0; i < arrangement.length; ++i) {
 			let next = (i + 1) % arrangement.length;
-			let prev = Number(util.mod(i - 1, arrangement.length));
+			let prev = Number(util.bigIntMod(i - 1, arrangement.length));
 			const nextHappiness = names[arrangement[i]][arrangement[next]];
 			const prevHappiness = names[arrangement[i]][arrangement[prev]];
 			totalHappiness += nextHappiness + prevHappiness;
@@ -150,7 +150,7 @@ David would gain 41 happiness units by sitting next to Carol.`,
 	const part2Solution = String(await p2015day13_part2(input));
 	const part2After = performance.now();
 
-	logSolution(part1Solution, part2Solution);
+	logSolution(13, 2015, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));

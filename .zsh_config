@@ -1,0 +1,2 @@
+alias run='ts-node ./run.ts'
+alias submit='ts-node ./submit.ts'

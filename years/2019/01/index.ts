@@ -13,7 +13,12 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2019/day/1
 
 async function p2019day1_part1(input: string) {
-	return String(input.split("\n").map(Number).reduce((p, c) => p + (Math.floor(c / 3) - 2), 0))
+	return String(
+		input
+			.split("\n")
+			.map(Number)
+			.reduce((p, c) => p + (Math.floor(c / 3) - 2), 0)
+	);
 }
 
 async function p2019day1_part2(input: string, part1Solution: string) {
@@ -26,7 +31,7 @@ async function run() {
 	const part1Solution = String(await p2019day1_part1(input));
 	const part2Solution = String(await p2019day1_part2(input, part1Solution));
 
-	logSolution(part1Solution, part2Solution);
+	logSolution(1, 2019, part1Solution, part2Solution);
 }
 
 run()

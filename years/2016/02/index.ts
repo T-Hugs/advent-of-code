@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { Grid } from "../../../util/grid";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2016;
@@ -16,11 +17,65 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/2
 
 async function p2016day2_part1(input: string) {
-	return "Not implemented";
+	const keypad = new Grid({ serialized: `123\n456\n789` });
+	const lines = input.split("\n");
+	let code = "5";
+	for (const line of lines) {
+		const directions = line.split("");
+		let currentCell = keypad.getCell(code[code.length - 1])!;
+		for (const direction of directions) {
+			switch (direction) {
+				case "U":
+					currentCell = currentCell.north(1, "stay")!;
+					break;
+				case "R":
+					currentCell = currentCell.east(1, "stay")!;
+					break;
+				case "D":
+					currentCell = currentCell.south(1, "stay")!;
+					break;
+				case "L":
+					currentCell = currentCell.west(1, "stay")!;
+					break;
+			}
+		}
+		code += currentCell.value;
+	}
+
+	return code.substr(1);
 }
 
 async function p2016day2_part2(input: string) {
-	return "Not implemented";
+	const keypad = new Grid({ serialized: `..1..\n.234.\n56789\n.ABC.\n..D..` });
+	const lines = input.split("\n");
+	let code = "5";
+	for (const line of lines) {
+		const directions = line.split("");
+		let currentCell = keypad.getCell(code[code.length - 1])!;
+		for (const direction of directions) {
+			let prevCell = currentCell;
+			switch (direction) {
+				case "U":
+					currentCell = currentCell.north(1, "stay")!;
+					break;
+				case "R":
+					currentCell = currentCell.east(1, "stay")!;
+					break;
+				case "D":
+					currentCell = currentCell.south(1, "stay")!;
+					break;
+				case "L":
+					currentCell = currentCell.west(1, "stay")!;
+					break;
+			}
+			if (currentCell.value === ".") {
+				currentCell = prevCell;
+			}
+		}
+		code += currentCell.value;
+	}
+
+	return code.substr(1);
 }
 
 async function run() {
@@ -28,7 +83,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2016day2_part1(testCase.input)));
@@ -46,11 +101,11 @@ async function run() {
 	const part1Solution = String(await p2016day2_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day2_part2(input));
 	const part2After = performance.now();
-	
-	logSolution(part1Solution, part2Solution);
+
+	logSolution(2, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));

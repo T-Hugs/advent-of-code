@@ -105,7 +105,7 @@ Dublin to Belfast = 141`,
 	const part2Solution = String(await p2015day9_part2(input));
 	const part2After = performance.now();
 	
-	logSolution(part1Solution, part2Solution);
+	logSolution(9, 2015, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));

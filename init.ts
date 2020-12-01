@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl } from "./util/util";
+import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";
 import * as path from "path";
@@ -74,6 +74,7 @@ const AOC_INPUT_TEMPLATE = "https://adventofcode.com/{year}/day/{day}/input";
 const NUM_DAYS = 25;
 const START_YEAR = 2015;
 
+// @todo de-dup this from submit.ts
 async function getNewSessionToken() {
 	const browser = await playwright.chromium.launch({ headless: false });
 	const context = await browser.newContext();
@@ -157,17 +158,6 @@ async function getCompareTemplate() {
 		}
 	}
 	return compareTemplate;
-}
-
-function getLatestPuzzleDate(asOf = new Date()) {
-	const asUTC = new Date(asOf.getTime() + asOf.getTimezoneOffset() * 60 * 1000);
-	const asEST = new Date(asUTC.getTime() - 5 * 60 * 60 * 1000);
-	const isDecember = asEST.getMonth() === 11;
-	const currentYear = asEST.getFullYear();
-	const latestPuzzleYear = isDecember ? currentYear : currentYear - 1;
-	const currentDay = asEST.getDate();
-	const latestPuzzleDay = isDecember ? Math.min(currentDay, 25) : 25;
-	return { day: latestPuzzleDay, year: latestPuzzleYear };
 }
 
 function getReleaseTime(day: number, year: number) {

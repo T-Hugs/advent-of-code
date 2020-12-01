@@ -13,11 +13,11 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2019/day/22
 
 export function linearCut(pos: bigint, cutPos: bigint, deckSize: bigint) {
-	return util.mod(pos - cutPos, deckSize);
+	return util.bigIntMod(pos - cutPos, deckSize);
 }
 
 export function linearDeal(pos: bigint, increment: bigint, deckSize: bigint) {
-	return util.mod(pos * increment, deckSize);
+	return util.bigIntMod(pos * increment, deckSize);
 }
 
 export function linearStack(pos: bigint, deckSize: bigint) {
@@ -25,11 +25,11 @@ export function linearStack(pos: bigint, deckSize: bigint) {
 }
 
 export function reverseCut(pos: bigint, cutPos: bigint, deckSize: bigint) {
-	return util.mod(pos + cutPos + deckSize, deckSize);
+	return util.bigIntMod(pos + cutPos + deckSize, deckSize);
 }
 
 export function reverseDeal(pos: bigint, increment: bigint, deckSize: bigint) {
-	return util.mod(util.modInverse(increment, deckSize) * pos, deckSize);
+	return util.bigIntMod(util.modInverse(increment, deckSize) * pos, deckSize);
 }
 
 export function reverseStack(pos: bigint, deckSize: bigint) {
@@ -82,13 +82,13 @@ async function p2019day22_part2(input: string, part1Solution: string) {
 	const targetPos = 2020n;
 	const firstShuffle = reverseShuffle(targetPos, lines);
 	const secondShuffle = reverseShuffle(firstShuffle, lines);
-	const A = util.mod(
+	const A = util.bigIntMod(
 		(firstShuffle - secondShuffle) * util.modInverse(targetPos - firstShuffle + deckSize, deckSize),
 		deckSize
 	);
-	const B = util.mod(firstShuffle - A * targetPos, deckSize);
+	const B = util.bigIntMod(firstShuffle - A * targetPos, deckSize);
 
-	return util.mod(
+	return util.bigIntMod(
 		util.powerMod(A, numShuffles, deckSize) * targetPos +
 			(util.powerMod(A, numShuffles, deckSize) - 1n) * util.modInverse(A - 1n, deckSize) * B,
 		deckSize
@@ -101,7 +101,7 @@ async function run() {
 	const part1Solution = String(await p2019day22_part1(input));
 	const part2Solution = String(await p2019day22_part2(input, part1Solution));
 
-	logSolution(part1Solution, part2Solution);
+	logSolution(22, 2019, part1Solution, part2Solution);
 }
 
 run()

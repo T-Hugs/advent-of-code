@@ -101,7 +101,7 @@ async function run() {
 	const part1Solution = String(await p2015day1_part1(input));
 	const part2Solution = String(await p2015day1_part2(input));
 
-	logSolution(part1Solution, part2Solution);
+	logSolution(1, 2015, part1Solution, part2Solution);
 }
 
 run()

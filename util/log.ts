@@ -37,8 +37,14 @@ export function trace(...params: any[]) {
 		console.log();
 	}
 }
-
-export function logSolution(year: number, day: number, part1: string, part2?: string) {
+export const solutionLogKey = "solutionLog";
+export interface SolutionObject {
+	dateComputed: string;
+	problem: { year: number; day: number };
+	part1: string;
+	part2: string;
+}
+export function logSolution(day: number, year: number, part1: string, part2?: string) {
 	const part1Text =
 		part1 === "Not implemented"
 			? chalk.black.bgYellowBright(` ${part1} `)
@@ -58,4 +64,30 @@ export function logSolution(year: number, day: number, part1: string, part2?: st
 			part2Text +
 			"\n"
 	);
+
+	// Log the solution in local storage. Used in case of a follow-up execution of submit.ts
+	const solutionObj = {
+		dateComputed: new Date().toJSON(),
+		problem: {
+			year,
+			day,
+		},
+		part1,
+		part2,
+	} as SolutionObject;
+
+	const solutionLogStr = localStorage.getItem(solutionLogKey);
+	let solutionLog: any;
+	if (solutionLogStr) {
+		try {
+			solutionLog = JSON.parse(solutionLogStr);
+			if (Array.isArray(solutionLog)) {
+				solutionLog.push(solutionObj);
+			}
+		} catch {}
+	}
+	if (!solutionLog) {
+		solutionLog = [solutionObj];
+	}
+	localStorage.setItem(solutionLogKey, JSON.stringify(solutionLog, null, 4));
 }

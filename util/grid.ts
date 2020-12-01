@@ -253,20 +253,44 @@ export class Cell {
 		return this.pos[0] * this.grid.colCount + this.pos[1];
 	}
 
-	public north(count = 1) {
-		return this.grid.getCell([this.pos[0] - count, this.pos[1]]);
+	public north(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+		let newRow = this.pos[0] - count;
+		if (moveOption === "wrap") {
+			newRow = util.mod(newRow, this.grid.rowCount);
+		} else if (moveOption === "stay") {
+			newRow = util.clamp(newRow, 0, this.grid.rowCount - 1);
+		}
+		return this.grid.getCell([newRow, this.pos[1]]);
 	}
 
-	public east(count = 1) {
-		return this.grid.getCell([this.pos[0], this.pos[1] + count]);
+	public east(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+		let newCol = this.pos[1] + count;
+		if (moveOption === "wrap") {
+			newCol = util.mod(newCol, this.grid.rowCount);
+		} else if (moveOption === "stay") {
+			newCol = util.clamp(newCol, 0, this.grid.rowCount - 1);
+		}
+		return this.grid.getCell([this.pos[0], newCol]);
 	}
 
-	public south(count = 1) {
-		return this.grid.getCell([this.pos[0] + count, this.pos[1]]);
+	public south(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+		let newRow = this.pos[0] + count;
+		if (moveOption === "wrap") {
+			newRow = util.mod(newRow, this.grid.rowCount);
+		} else if (moveOption === "stay") {
+			newRow = util.clamp(newRow, 0, this.grid.rowCount - 1);
+		}
+		return this.grid.getCell([newRow, this.pos[1]]);
 	}
 
-	public west(count = 1) {
-		return this.grid.getCell([this.pos[0], this.pos[1] - count]);
+	public west(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+		let newCol = this.pos[1] - count;
+		if (moveOption === "wrap") {
+			newCol = util.mod(newCol, this.grid.rowCount);
+		} else if (moveOption === "stay") {
+			newCol = util.clamp(newCol, 0, this.grid.rowCount - 1);
+		}
+		return this.grid.getCell([this.pos[0], newCol]);
 	}
 
 	public neighbors(includeDiagonals = false) {

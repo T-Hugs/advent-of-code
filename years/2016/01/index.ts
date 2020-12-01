@@ -18,7 +18,7 @@ async function p2016day1_part1(input: string) {
 	let dir = 0;
 	const instructions = input.split(", ");
 	for (const instruction of instructions) {
-		dir = Number(util.mod(dir + (instruction[0] === "R" ? 1 : -1), 4));
+		dir = Number(util.bigIntMod(dir + (instruction[0] === "R" ? 1 : -1), 4));
 		let dist = parseInt(instruction.slice(1), 10);
 		if (dir === 0) {
 			y -= dist;
@@ -44,7 +44,7 @@ async function p2016day1_part2(input: string, part1Solution: string) {
 	const instructions = input.split(", ");
 	const visited = new Set();
 	for (const instruction of instructions) {
-		dir = Number(util.mod(dir + (instruction[0] === "R" ? 1 : -1), 4));
+		dir = Number(util.bigIntMod(dir + (instruction[0] === "R" ? 1 : -1), 4));
 		let dist = parseInt(instruction.slice(1), 10);
 		for (let i = 0; i < dist; ++i) {
 			if (dir === 0) {
@@ -74,7 +74,7 @@ async function run() {
 	const part1Solution = String(await p2016day1_part1(input));
 	const part2Solution = String(await p2016day1_part2(input, part1Solution));
 
-	logSolution(part1Solution, part2Solution);
+	logSolution(1, 2016, part1Solution, part2Solution);
 }
 
 run()
