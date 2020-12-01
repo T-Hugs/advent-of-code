@@ -111,6 +111,10 @@ async function submit() {
 			} else if (responseText.includes("That's the right answer!")) {
 				console.log(chalk.greenBright("Correct! One ") + chalk.yellowBright("GOLD") + chalk.greenBright(" star for you!"));
 				process.exit(0);
+			} else {
+				console.log("Unrecognized response! See below.\n");
+				console.log(responseText);
+				process.exit(0);
 			}
 		}
 	} catch {
