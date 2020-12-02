@@ -4,7 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
-import { compute } from "../bigintcode";
+import { compute } from "../intcode";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2019;
@@ -17,21 +17,21 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2019/day/2
 
 async function p2019day2_part1(input: string) {
-	const vn = input.split(",").map(BigInt);
-	vn[1] = 12n;
-	vn[2] = 2n;
+	const vn = input.split(",").map(Number);
+	vn[1] = 12;
+	vn[2] = 2;
 	const result = compute(vn);
 	return result[0];
 }
 
 async function p2019day2_part2(input: string) {
-	const vn = input.split(",").map(BigInt);
+	const vn = input.split(",").map(Number);
 	for (let i = 0; i < 100; ++i) {
 		for (let j = 0; j < 100; ++j) {
-			vn[1] = BigInt(i);
-			vn[2] = BigInt(j);
+			vn[1] = i;
+			vn[2] = j;
 			const result = compute(vn);
-			if (result[0] === 19690720n) {
+			if (result[0] === 19690720) {
 				return 100 * i + j;
 			}
 		}
