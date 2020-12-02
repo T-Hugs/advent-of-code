@@ -16,11 +16,40 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/2
 
 async function p2020day2_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let good = 0;
+	for (const line of lines) {
+		const split = line.split(" ");
+		const pw = split[2];
+		const [fewest, most] = split[0].split("-").map(Number);
+		const letter = split[1][0];
+
+		let count = 0;
+		for (const char of pw) {
+			if (letter === char) {
+				count++;
+			}
+		}
+		if (count >= fewest && count <= most) {
+			good++;
+		}
+	}
+	return good;
 }
 
 async function p2020day2_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let good = 0;
+	for (const line of lines) {
+		const split = line.split(" ");
+		const [first, second] = split[0].split("-").map(Number);
+		const letter = split[1][0];
+		const pw = split[2];
+		if ((pw[first - 1] === letter) !== (pw[second - 1] === letter)) {
+			good++;
+		}
+	}
+	return good;
 }
 
 async function run() {
@@ -28,7 +57,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2020day2_part1(testCase.input)));
@@ -46,11 +75,11 @@ async function run() {
 	const part1Solution = String(await p2020day2_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day2_part2(input));
 	const part2After = performance.now();
-	
-	logSolution(part1Solution, part2Solution);
+
+	logSolution(2, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
