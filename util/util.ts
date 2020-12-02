@@ -82,7 +82,7 @@ export async function getInput(day: number, year: number, rootDir = path.join(ge
 }
 
 export function clamp(val: number, min: number, max: number) {
-    return Math.max(Math.min(val, max), min);
+	return Math.max(Math.min(val, max), min);
 }
 
 // The % operator in JS is the remainder operator. The below function
@@ -227,4 +227,34 @@ export function countUniqueElements(
 		}
 	}
 	return result;
+}
+
+export function max<T>(arr: T[], toNumber: (elem: T) => number = Number) {
+	let maxIndex = -1;
+	let maxValue = Number.MIN_VALUE;
+	let maxElem: T | undefined = undefined;
+	for (let i = 0; i < arr.length; ++i) {
+		const num = toNumber(arr[i]);
+		if (num > maxValue) {
+			maxIndex = i;
+			maxValue = num;
+			maxElem = arr[i];
+		}
+	}
+	return { index: maxIndex, value: maxValue, elem: maxElem! };
+}
+
+export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
+	let minIndex = -1;
+	let minValue = Number.MAX_VALUE;
+	let minElem: T | undefined = undefined;
+	for (let i = 0; i < arr.length; ++i) {
+		const num = toNumber(arr[i]);
+		if (num < minValue) {
+			minIndex = i;
+			minValue = num;
+			minElem = arr[i];
+		}
+	}
+	return { index: minIndex, value: minValue, elem: minElem! };
 }

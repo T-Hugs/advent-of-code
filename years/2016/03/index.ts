@@ -15,20 +15,62 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2016/03/data.txt
 // problem url  : https://adventofcode.com/2016/day/3
 
+function validTriangle(nums: number[]) {
+	const parts = [...nums];
+	const largest = util.max(parts);
+	parts.splice(
+		parts.findIndex(p => p === largest.value),
+		1
+	);
+	const sum = _.sum(parts);
+	return sum > largest.value;
+}
+
 async function p2016day3_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (const line of lines) {
+		const parts = line.trim().split(/ +/).map(Number);
+
+		if (validTriangle(parts)) {
+			count++;
+		}
+	}
+	return count;
 }
 
 async function p2016day3_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (let i = 0; i < lines.length; i += 3) {
+		const l1 = lines[i].trim().split(/ +/).map(Number);
+		const l2 = lines[i + 1].trim().split(/ +/).map(Number);
+		const l3 = lines[i + 2].trim().split(/ +/).map(Number);
+
+		if (validTriangle([l1[0], l2[0], l3[0]])) {
+			count++;
+		}
+		if (validTriangle([l1[1], l2[1], l3[1]])) {
+			count++;
+		}
+		if (validTriangle([l1[2], l2[2], l3[2]])) {
+			count++;
+		}
+	}
+	return count;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `  5    10 25`,
+			expected: `0`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2016day3_part1(testCase.input)));
@@ -46,10 +88,10 @@ async function run() {
 	const part1Solution = String(await p2016day3_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day3_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(3, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
