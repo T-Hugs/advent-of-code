@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { Grid } from "../../../util/grid";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
@@ -16,11 +17,63 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/3
 
 async function p2020day3_part1(input: string) {
-	return "Not implemented";
+	const grid = new Grid({serialized: input});
+	const start = grid.getCell([0, 0]);
+	let pos = start;
+	let count = 0;
+	while (pos != undefined) {
+		pos = pos.east(3, "wrap")?.south();
+		if (pos && pos.value === "#") {
+			count++;
+		}
+	}
+	return count;
 }
 
 async function p2020day3_part2(input: string) {
-	return "Not implemented";
+	const grid = new Grid({serialized: input});
+	const start = grid.getCell([0, 0]);
+	let pos = start;
+	let a = 0;
+	while (pos != undefined) {
+		pos = pos.east(1, "wrap")?.south();
+		if (pos && pos.value === "#") {
+			a++;
+		}
+	}
+	pos = start;
+	let b = 0;
+	while (pos != undefined) {
+		pos = pos.east(3, "wrap")?.south();
+		if (pos && pos.value === "#") {
+			b++;
+		}
+	}
+	pos = start;
+	let c = 0;
+	while (pos != undefined) {
+		pos = pos.east(5, "wrap")?.south();
+		if (pos && pos.value === "#") {
+			c++;
+		}
+	}
+	pos = start;
+	let d = 0;
+	while (pos != undefined) {
+		pos = pos.east(7, "wrap")?.south();
+		if (pos && pos.value === "#") {
+			d++;
+		}
+	}
+	pos = start;
+	let e = 0;
+	while (pos != undefined) {
+		pos = pos.east(1, "wrap")?.south(2);
+		if (pos && pos.value === "#") {
+			e++;
+		}
+	}
+	return a*b*c*d*e;
 }
 
 async function run() {

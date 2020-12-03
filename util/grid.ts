@@ -266,9 +266,9 @@ export class Cell {
 	public east(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
 		let newCol = this.pos[1] + count;
 		if (moveOption === "wrap") {
-			newCol = util.mod(newCol, this.grid.rowCount);
+			newCol = util.mod(newCol, this.grid.colCount);
 		} else if (moveOption === "stay") {
-			newCol = util.clamp(newCol, 0, this.grid.rowCount - 1);
+			newCol = util.clamp(newCol, 0, this.grid.colCount - 1);
 		}
 		return this.grid.getCell([this.pos[0], newCol]);
 	}
@@ -286,9 +286,9 @@ export class Cell {
 	public west(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
 		let newCol = this.pos[1] - count;
 		if (moveOption === "wrap") {
-			newCol = util.mod(newCol, this.grid.rowCount);
+			newCol = util.mod(newCol, this.grid.colCount);
 		} else if (moveOption === "stay") {
-			newCol = util.clamp(newCol, 0, this.grid.rowCount - 1);
+			newCol = util.clamp(newCol, 0, this.grid.colCount - 1);
 		}
 		return this.grid.getCell([this.pos[0], newCol]);
 	}
