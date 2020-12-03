@@ -16,11 +16,75 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2019/day/3
 
 async function p2019day3_part1(input: string) {
-	return "Not implemented";
+	const [wire1, wire2] = input.split("\n").map(w => w.split(","));
+	const locations: { [loc: string]: boolean } = {};
+	const crosses: number[][] = [];
+	for (const wire of [wire1, wire2]) {
+		const wirePos: [number, number] = [0, 0];
+		for (const segment of wire) {
+			const dir = segment[0];
+			const len = Number(segment.substr(1));
+			for (let i = 0; i < len; ++i) {
+				if (dir === "U") {
+					wirePos[0]--;
+				} else if (dir === "R") {
+					wirePos[1]++;
+				} else if (dir === "D") {
+					wirePos[0]++;
+				} else if (dir === "L") {
+					wirePos[1]--;
+				}
+
+				const key = wirePos.toString();
+				if (wire === wire1) {
+					locations[key] = true;
+				} else {
+					if (locations[key]) {
+						crosses.push([...wirePos]);
+					}
+				}
+			}
+		}
+	}
+	crosses.sort((a, b) => Math.abs(a[0]) + Math.abs(a[1]) - (Math.abs(b[0]) + Math.abs(b[1])));
+	return Math.abs(crosses[0][0]) + Math.abs(crosses[0][1]);
 }
 
 async function p2019day3_part2(input: string) {
-	return "Not implemented";
+	const [wire1, wire2] = input.split("\n").map(w => w.split(","));
+	const locations: { [loc: string]: number } = {};
+	const crosses: [segment: [row: number, col: number], steps: number][] = [];
+	for (const wire of [wire1, wire2]) {
+		const wirePos: [number, number] = [0, 0];
+		let step = 0;
+		for (const segment of wire) {
+			const dir = segment[0];
+			const len = Number(segment.substr(1));
+			for (let i = 0; i < len; ++i) {
+				step++;
+				if (dir === "U") {
+					wirePos[0]--;
+				} else if (dir === "R") {
+					wirePos[1]++;
+				} else if (dir === "D") {
+					wirePos[0]++;
+				} else if (dir === "L") {
+					wirePos[1]--;
+				}
+
+				const key = wirePos.toString();
+				if (wire === wire1) {
+					locations[key] = step;
+				} else {
+					if (locations[key] != undefined) {
+						crosses.push([[...wirePos], locations[key] + step]);
+					}
+				}
+			}
+		}
+	}
+	crosses.sort((a, b) => a[1] - b[1]);
+	return crosses[0][1];
 }
 
 async function run() {
@@ -28,7 +92,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2019day3_part1(testCase.input)));
@@ -46,10 +110,10 @@ async function run() {
 	const part1Solution = String(await p2019day3_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2019day3_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(3, 2019, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
