@@ -17,7 +17,7 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/3
 
 async function p2020day3_part1(input: string) {
-	const grid = new Grid({serialized: input});
+	const grid = new Grid({ serialized: input });
 	const start = grid.getCell([0, 0]);
 	let pos = start;
 	let count = 0;
@@ -31,49 +31,28 @@ async function p2020day3_part1(input: string) {
 }
 
 async function p2020day3_part2(input: string) {
-	const grid = new Grid({serialized: input});
+	const grid = new Grid({ serialized: input });
 	const start = grid.getCell([0, 0]);
-	let pos = start;
-	let a = 0;
-	while (pos != undefined) {
-		pos = pos.east(1, "wrap")?.south();
-		if (pos && pos.value === "#") {
-			a++;
+	const slopes = [
+		[1, 1],
+		[3, 1],
+		[5, 1],
+		[7, 1],
+		[1, 2],
+	];
+	let result = 1;
+	for (const slope of slopes) {
+		let trees = 0;
+		let pos = start;
+		while (pos != undefined) {
+			pos = pos.east(slope[0], "wrap")?.south(slope[1]);
+			if (pos && pos.value === "#") {
+				trees++;
+			}
 		}
+		result *= trees;
 	}
-	pos = start;
-	let b = 0;
-	while (pos != undefined) {
-		pos = pos.east(3, "wrap")?.south();
-		if (pos && pos.value === "#") {
-			b++;
-		}
-	}
-	pos = start;
-	let c = 0;
-	while (pos != undefined) {
-		pos = pos.east(5, "wrap")?.south();
-		if (pos && pos.value === "#") {
-			c++;
-		}
-	}
-	pos = start;
-	let d = 0;
-	while (pos != undefined) {
-		pos = pos.east(7, "wrap")?.south();
-		if (pos && pos.value === "#") {
-			d++;
-		}
-	}
-	pos = start;
-	let e = 0;
-	while (pos != undefined) {
-		pos = pos.east(1, "wrap")?.south(2);
-		if (pos && pos.value === "#") {
-			e++;
-		}
-	}
-	return a*b*c*d*e;
+	return result;
 }
 
 async function run() {
@@ -81,7 +60,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2020day3_part1(testCase.input)));
@@ -99,10 +78,10 @@ async function run() {
 	const part1Solution = String(await p2020day3_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day3_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(3, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
