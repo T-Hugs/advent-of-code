@@ -16,7 +16,14 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/7
 
 async function p2016day7_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (const line of lines) {
+		if (/(?<=([\]])|(\b)[a-z]*)(.)((?!\1).)\2\1/.test(line)) {
+			count++; // in progress!
+		}
+	}
+	return count;
 }
 
 async function p2016day7_part2(input: string) {
@@ -24,11 +31,28 @@ async function p2016day7_part2(input: string) {
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `abba[mnop]qrst`,
+			expected: `1`,
+		},
+		{
+			input: `abcd[bddb]xyyx`,
+			expected: `0`,
+		},
+		{
+			input: `aaaa[qwer]tyui`,
+			expected: `0`,
+		},
+		{
+			input: `ioxxoj[asdfgh]zxcvbn`,
+			expected: `1`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2016day7_part1(testCase.input)));
@@ -46,10 +70,10 @@ async function run() {
 	const part1Solution = String(await p2016day7_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day7_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(7, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

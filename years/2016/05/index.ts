@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import crypto from "crypto";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2016;
@@ -16,11 +17,36 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/5
 
 async function p2016day5_part1(input: string) {
-	return "Not implemented";
+	let pw = "";
+	for (let i = 0; ; ++i) {
+		const toHash = input + i;
+		const hash = util.md5(toHash);
+		if (hash.startsWith("00000")) {
+			pw += hash[5]
+		}
+		if (pw.length === 8) {
+			return pw;
+		}
+	}
 }
 
 async function p2016day5_part2(input: string) {
-	return "Not implemented";
+	let pw: string[] = [];
+	let charsFound = 0;
+	for (let i = 0; ; ++i) {
+		const toHash = input + i;
+		const hash = util.md5(toHash);
+		if (hash.startsWith("00000")) {
+			const pos = Number(hash[5]);
+			if (!isNaN(pos) && pos < 8 && !pw[pos]) {
+				pw[pos] = hash[6];
+				charsFound++;
+				if (charsFound === 8) {
+					return pw.join("");
+				}
+			}
+		}
+	}
 }
 
 async function run() {

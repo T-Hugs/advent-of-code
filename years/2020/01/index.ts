@@ -5,7 +5,6 @@ import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
 
-import { Combination } from "js-combinatorics/commonjs/combinatorics";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;

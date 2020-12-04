@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs/promises";
+import crypto from "crypto";
 import { existsSync } from "fs";
 import { fileURLToPath } from "url";
 
@@ -257,4 +258,10 @@ export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 		}
 	}
 	return { index: minIndex, value: minValue, elem: minElem! };
+}
+
+export function md5(input: string) {
+	const hash = crypto.createHash("md5");
+	hash.update(input);
+	return hash.digest("hex");
 }
