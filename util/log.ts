@@ -43,6 +43,11 @@ export interface SolutionObject {
 	problem: { year: number; day: number };
 	part1: string;
 	part2: string;
+	submissions?: {
+		date: string;
+		result: "correct" | "incorrect" | "low" | "high" | "timeout" | "unknown";
+		cooldownFinished?: string;
+	}[];
 }
 export function logSolution(day: number, year: number, part1: string, part2?: string) {
 	const part1Text =

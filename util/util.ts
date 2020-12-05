@@ -33,6 +33,49 @@ export function msToString(ms: number) {
 	}
 }
 
+export function splitTimeIntoUnits(ms: number) {
+	let remaining = ms;
+	const result: { [key: string]: number } = {
+		days: 0,
+		hr: 0,
+		min: 0,
+		sec: 0,
+		ms: 0,
+	};
+	if (remaining > 86400000) {
+		result.days = Math.floor(remaining / 86400000);
+		remaining -= result.days * 86400000;
+	}
+	if (remaining > 3600000) {
+		result.hr = Math.floor(remaining / 3600000);
+		remaining -= result.hr * 3600000;
+	}
+	if (remaining > 60000) {
+		result.min = Math.floor(remaining / 60000);
+		remaining -= result.min * 60000;
+	}
+	if (remaining > 1000) {
+		result.sec = Math.floor(remaining / 1000);
+		remaining -= result.sec * 1000;
+	}
+	if (remaining > 0) {
+		result.ms = Math.round(remaining);
+	}
+	return result;
+}
+const TIME_UNIT_ORDER = ["days", "hr", "min", "sec", "ms"];
+export function formatTime(ms: number, unitsOfPrecision: number = Number.MAX_SAFE_INTEGER) {
+	const units = splitTimeIntoUnits(ms);
+	const entries = Object.entries(units);
+	entries.sort((a, b) => TIME_UNIT_ORDER.indexOf(a[0]) - TIME_UNIT_ORDER.indexOf(b[0]));
+	let result: string[] = [];
+	const startIndex = entries.findIndex(e => e[1] !== 0);
+	for (let i = startIndex; i < startIndex + Math.min(entries.length, unitsOfPrecision); ++i) {
+		result.push(entries[i][1] + entries[i][0]);
+	}
+	return result.join(" ");
+}
+
 /**
  * Returns a promise that resolves after a certain amount of time.
  * @param ms Number of milliseconds to wait

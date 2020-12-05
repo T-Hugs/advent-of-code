@@ -1,9 +1,10 @@
 import fetch from "node-fetch";
-import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate } from "./util/util";
+import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate, formatTime } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";
 import * as path from "path";
 import mkdirp from "mkdirp";
+import chalk from "chalk";
 import * as fs from "fs/promises";
 import { existsSync, mkdir } from "fs";
 
@@ -17,6 +18,7 @@ interface Settings {
 	templatePath: string;
 	compareWithPath?: string;
 	years: number[];
+	wait: boolean;
 }
 
 if (
@@ -53,6 +55,9 @@ suck             : Suck in problem data from adventofcode.com.
                    interactive login. Any existing token will be deleted.
 --pristine       : Overwrite all solution files and data files. Cannot be
                    reversed. You have been warned.
+--wait           : Before sucking any data, wait until the next problem is
+                   released, then proceed normally. If wait is more than
+                   one day, show an error and do nothing.
 
 `);
 	process.exit();
@@ -66,6 +71,7 @@ const settings: Settings = {
 	templatePath: "",
 	compareWithPath: "",
 	pristine: false,
+	wait: false,
 };
 const appRoot = getAppRoot();
 const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
@@ -220,6 +226,7 @@ function parseArgs() {
 	const suck = args.includes("suck");
 	const seed = args.includes("seed");
 	const pristine = args.includes("--pristine");
+	const wait = args.includes("--wait");
 
 	if (!existsSync(templatePath)) {
 		templatePath = templatePath + ".dat";
@@ -238,6 +245,7 @@ function parseArgs() {
 		templatePath,
 		pristine,
 		compareWithPath,
+		wait,
 	} as Settings);
 
 	if (!settings.storeToken) {
@@ -277,6 +285,33 @@ async function run() {
 	parseArgs();
 
 	if (settings.suck) {
+		if (settings.wait) {
+			const latestPuzzleAsOfFiveMinutesFromNow = getLatestPuzzleDate(new Date(new Date().getTime() + 86400000));
+			const actualLatestPuzzle = getLatestPuzzleDate();
+			if (
+				latestPuzzleAsOfFiveMinutesFromNow.day === actualLatestPuzzle.day &&
+				latestPuzzleAsOfFiveMinutesFromNow.year === actualLatestPuzzle.year
+			) {
+				console.log(
+					chalk.redBright("Error: ") +
+						"The latest puzzle won't be released for more than 1 day. Use --wait only within 1 day of next puzzle release."
+				);
+			} else {
+				const releaseTime = getReleaseTime(
+					latestPuzzleAsOfFiveMinutesFromNow.day,
+					latestPuzzleAsOfFiveMinutesFromNow.year
+				);
+				// Wait an extra few seconds just in case the system clock is off by a bit.
+				// The player will need to read the problem anyway.
+				const toWait = releaseTime.getTime() - new Date().getTime() + 5000;
+
+				console.log(
+					chalk.yellowBright("\n=== WAITING === \n") +
+						`Waiting ${formatTime(toWait, 2)} for next puzzle release before continuing (Ctrl+C to cancel).\n`
+				);
+				await wait(toWait);
+			}
+		}
 		for (const year of settings.years) {
 			for (let i = 0; i < NUM_DAYS; ++i) {
 				const day = i + 1;
