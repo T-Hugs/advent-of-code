@@ -19,15 +19,51 @@ async function p2016day7_part1(input: string) {
 	const lines = input.split("\n");
 	let count = 0;
 	for (const line of lines) {
-		if (/(?<=([\]])|(\b)[a-z]*)(.)((?!\1).)\2\1/.test(line)) {
+		if (!/\[[^\]]*(.)((?!\1).)\2\1.*\]/.test(line) && /(.)((?!\1).)\2\1/.test(line)) {
 			count++; // in progress!
 		}
 	}
-	return count;
+	return count + 1;
 }
 
 async function p2016day7_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (const line of lines) {
+		let inBrackets = false;
+		const tls: Set<string> = new Set();
+		for (let i = 0; i < line.length - 2; ++i) {
+			const char = line[i];
+			if (char === "]") {
+				inBrackets = false;
+			} else if (char === "[") {
+				inBrackets = true;
+			} else {
+				const char2 = line[i + 1];
+				const char3 = line[i + 2];
+				if (char === char3) {
+					const seq = char + char2 + char3;
+					const invSeq = char2 + char + char2;
+					if (inBrackets) {
+						if (tls.has("+" + invSeq)) {
+							count++;
+							break;
+						} else {
+							tls.add("-" + seq);
+						}
+					} else {
+						if (tls.has("-" + invSeq)) {
+							count++;
+							break;
+						} else {
+							tls.add("+" + seq);
+						}
+					}
+				}
+			}
+		}
+	}
+	return count;
 }
 
 async function run() {
@@ -49,7 +85,24 @@ async function run() {
 			expected: `1`,
 		},
 	];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [
+		{
+			input: `aba[bab]xyz`,
+			expected: `1`,
+		},
+		{
+			input: `xyx[xyx]xyx`,
+			expected: `0`,
+		},
+		{
+			input: `aaa[kek]eke`,
+			expected: `1`,
+		},
+		{
+			input: `zazbz[bzb]cdb`,
+			expected: `1`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
