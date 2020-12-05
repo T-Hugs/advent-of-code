@@ -50,6 +50,8 @@ Suck is designed to automatically download problem data from adventofcode.com. W
 
 `--pristine`: Request new data from adventofcode.com, even if the data file already exists.
 
+`--wait`: Before sucking any data, wait until the next problem is released, then proceed normally. If wait is more than one day, show an error and do nothing.
+
 ### Seed
 Seed is designed to automatically create your working files. The default template (`solutionTemplate.ts.dat`) sets up imports, your solution functions, data import, and logging your solution.
 
