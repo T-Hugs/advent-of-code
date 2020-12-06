@@ -16,19 +16,44 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/6
 
 async function p2020day6_part1(input: string) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	return groups.reduce((p, c) => p + _.uniq(c.split("\n").join("")).length, 0);
 }
 
 async function p2020day6_part2(input: string) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	return groups.reduce((a, b) => {
+		const lines = b.split("\n");
+		return a + lines.slice(1).reduce((p, c) => p.filter(a => c.split("").includes(a)), lines[0].split("")).length;
+	}, 0);
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `abc
+
+a
+b
+c
+
+ab
+ac
+
+a
+a
+a
+a
+
+b
+`,
+			expected: `11`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2020day6_part1(testCase.input)));
@@ -46,10 +71,10 @@ async function run() {
 	const part1Solution = String(await p2020day6_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day6_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(6, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
