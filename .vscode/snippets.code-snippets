@@ -1,9 +1,9 @@
 {
-	// Place your advent-of-code workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
-	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
-	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
-	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
-	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Place your advent-of-code workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
 	// Placeholders with the same ids are connected.
 	// Example:
 	// "Print to console": {
@@ -18,12 +18,27 @@
 	"Test Case": {
 		"scope": "typescript",
 		"prefix": "test",
+		"body": ["{", "\tinput: `$1`,", "\texpected: ``", "}"],
+		"description": "Insert test into tests array"
+	},
+	"Loop input lines": {
+		"scope": "typescript",
+		"prefix": "lines",
+		"body": ["const lines = input.split(\"\\n\");", "for (const line of lines) {", "\t$1", "}"],
+		"description": "Split input by lines and loop over them"
+	},
+	"Loop input groups": {
+		"scope": "typescript",
+		"prefix": "groups",
 		"body": [
-			"{",
-			"\tinput: `$1`,",
-			"\texpected: ``",
+			"const groups = input.split(\"\\n\\n\");",
+			"for (const group of groups) {",
+			"\tconst lines = group.split(\"\\n\");",
+			"\tfor (const line of lines) {",
+			"\t\t$1",
+			"\t}",
 			"}"
 		],
-		"description": "Insert test into tests array"
+		"description": "Split input by groups (double line break), then by lines (single line break), and loop over all the lines within each group."
 	}
 }

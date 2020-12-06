@@ -16,11 +16,89 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/10
 
 async function p2016day10_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const locations: Obj<number[]> = {};
+	while (true) {
+		let brk = true;
+		for (const line of lines) {
+			if (line.startsWith("value")) {
+				const [val, dest] = /(\d+) goes to (.*)/.exec(line)!.slice(1);
+				if (!locations[dest]) {
+					locations[dest] = [];
+				}
+				locations[dest].push(Number(val));
+				_.remove(lines, l => l === line);
+				brk = false;
+				break;
+			} else {
+				const [source, lowDest, hiDest] = /(bot \d+) gives low to (.*?) and high to (.*)/.exec(line)!.slice(1);
+				if (locations[source] && locations[source].length === 2) {
+					const low = Math.min(...locations[source]);
+					const high = Math.max(...locations[source]);
+					if (!locations[lowDest]) {
+						locations[lowDest] = [];
+					}
+					if (!locations[hiDest]) {
+						locations[hiDest] = [];
+					}
+					if (low === 17 && high === 61) {
+						return source.substr(4);
+					}
+					locations[lowDest].push(low);
+					locations[hiDest].push(high);
+					_.remove(lines, l => l === line);
+					brk = false;
+					break;
+				}
+			}
+		}
+		if (brk) {
+			break;
+		}
+	}
+	console.log("done?");
 }
 
 async function p2016day10_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const locations: Obj<number[]> = {};
+	while (true) {
+		let brk = true;
+		for (const line of lines) {
+			if (line.startsWith("value")) {
+				const [val, dest] = /(\d+) goes to (.*)/.exec(line)!.slice(1);
+				if (!locations[dest]) {
+					locations[dest] = [];
+				}
+				locations[dest].push(Number(val));
+				_.remove(lines, l => l === line);
+				brk = false;
+				break;
+			} else {
+				const [source, lowDest, hiDest] = /(bot \d+) gives low to (.*?) and high to (.*)/.exec(line)!.slice(1);
+				if (locations[source] && locations[source].length === 2) {
+					const low = Math.min(...locations[source]);
+					const high = Math.max(...locations[source]);
+					if (!locations[lowDest]) {
+						locations[lowDest] = [];
+					}
+					if (!locations[hiDest]) {
+						locations[hiDest] = [];
+					}
+					locations[lowDest].push(low);
+					locations[hiDest].push(high);
+					_.remove(lines, l => l === line);
+					brk = false;
+					break;
+				}
+			}
+		}
+		if (brk) {
+			break;
+		}
+	}
+	
+	return locations["output 0"][0] * locations["output 1"][0] * locations["output 2"][0];
 }
 
 async function run() {
@@ -28,7 +106,7 @@ async function run() {
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2016day10_part1(testCase.input)));
@@ -46,10 +124,10 @@ async function run() {
 	const part1Solution = String(await p2016day10_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day10_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(10, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
