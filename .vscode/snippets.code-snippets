@@ -40,5 +40,14 @@
 			"}"
 		],
 		"description": "Split input by groups (double line break), then by lines (single line break), and loop over all the lines within each group."
+	},
+	"Create grid from input": {
+		"scope": "typescript",
+		"prefix": "grid",
+		"body": [
+			"const grid = new Grid(input);",
+			"$1"
+		],
+		"description": "Create a grid out of the given text-serialized grid input."
 	}
 }
