@@ -15,7 +15,8 @@
 
 			"cwd": "${workspaceRoot}",
 			"internalConsoleOptions": "openOnSessionStart",
-			"skipFiles": ["<node_internals>/**", "node_modules/**"]
+			"skipFiles": ["<node_internals>/**", "node_modules/**"],
+			"outputCapture": "std"
 		}
 	]
 }

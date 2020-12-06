@@ -9,6 +9,16 @@ export interface GridOptions {
 	colCount?: number;
 }
 
+export interface CopyGridOptions {
+	startRow?: number;
+	startCol?: number;
+	endRow?: number;
+	endCol?: number;
+	rowCount?: number;
+	colCount?: number;
+	copyValues?: boolean;
+}
+
 export type GridPos = [row: number, col: number];
 
 const colorOrder = [
@@ -168,6 +178,26 @@ export class Grid {
 			}
 			return result;
 		}
+	}
+	
+	public copyGrid(_options?: CopyGridOptions) {
+		const options = _options ?? {};
+		const startRow = options.startRow ?? 0;
+		const startCol = options.startCol ?? 0;
+		const rowCount = options.rowCount ?? this.rowCount - startRow;
+		const colCount = options.colCount ?? this.colCount - startCol;
+		const endRow = options.endRow ?? startRow + rowCount - 1;
+		const endCol = options.endCol ?? startCol + colCount - 1;
+
+		const subgrid = new Grid({ rowCount, colCount });
+		if (options.copyValues !== false) {
+			for (let i = startRow; i <= endRow; ++i) {
+				for (let j = startCol; j <= endCol; ++j) {
+					subgrid.setCell([i - startRow, j - startCol], this.getValue([i, j]));
+				}
+			}
+		}
+		return subgrid;
 	}
 
 	public getValue(pos: GridPos) {
