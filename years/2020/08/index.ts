@@ -16,16 +16,97 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/8
 
 async function p2020day8_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const instructions: [string, number][] = [];
+	for (const line of lines) {
+		const [instruction, val] = line.split(" ");
+		instructions.push([instruction, Number(val)]);
+	}
+	const linesExecuted: Obj<boolean> = {};
+	let pc = 0;
+	let acc = 0;
+	while (true) {
+		const currentInstruction = instructions[pc];
+		if (linesExecuted[pc]) {
+			return acc;
+		}
+		linesExecuted[pc] = true;
+		if (currentInstruction[0] === "jmp") {
+			pc += currentInstruction[1];
+			continue;
+		} else if (currentInstruction[0] === "acc") {
+			acc += currentInstruction[1];
+			pc++;
+		} else if (currentInstruction[0] === "nop") {
+			pc++;
+		}
+	}
 }
 
 async function p2020day8_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const instructions: [string, number][] = [];
+	for (const line of lines) {
+		const [instruction, val] = line.split(" ");
+		instructions.push([instruction, Number(val)]);
+	}
+	
+	let lineToChange = 0;
+	while (true) {
+		if (instructions[lineToChange][0] === "jmp") {
+			instructions[lineToChange][0] = "nop";
+		} else if (instructions[lineToChange][0] === "nop") {
+			instructions[lineToChange][0] = "jmp";
+		}
+		const lineExecutionCount: Obj<number> = {};
+		let acc = 0;
+		let pc = 0;
+		while (true) {
+			const currentInstruction = instructions[pc];
+			if (!currentInstruction) {
+				return acc;
+			}
+			if (lineExecutionCount[pc] == undefined) {
+				lineExecutionCount[pc] = 0;
+			}
+			lineExecutionCount[pc]++;
+			if (lineExecutionCount[pc] > 10) {
+				if (instructions[lineToChange][0] === "jmp") {
+					instructions[lineToChange][0] = "nop";
+				} else if (instructions[lineToChange][0] === "nop") {
+					instructions[lineToChange][0] = "jmp";
+				}
+				lineToChange++;
+				break;
+			}
+			if (currentInstruction[0] === "jmp") {
+				pc += currentInstruction[1];
+				continue;
+			} else if (currentInstruction[0] === "acc") {
+				acc += currentInstruction[1];
+				pc++;
+			} else if (currentInstruction[0] === "nop") {
+				pc++;
+			}
+		}
+	}
 }
+
 
 async function run() {
 	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [{
+		input: `nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6`,
+		expected: `8`
+	}];
 
 	// Run tests
 	test.beginTests()
