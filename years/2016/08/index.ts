@@ -101,7 +101,7 @@ async function p2016day8_part2(input: string) {
 	const letterCount = Math.floor(grid.colCount / letterWidth);
 	let answer = "";
 	for (let i = 0; i < letterCount; ++i) {
-		const subGrid = grid.copyGrid({startCol: i * letterWidth, colCount: letterWidth});
+		const subGrid = grid.copyGrid({srcStartCol: i * letterWidth, srcColCount: letterWidth});
 		const subGridStr = subGrid.toString();
 		const letter = letters[subGridStr];
 		answer += letter ?? "?";

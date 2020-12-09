@@ -2,24 +2,115 @@ import * as util from "./util";
 import _ from "lodash";
 import chalk from "chalk";
 
+/**
+ * Options for initializing a Grid
+ */
 export interface GridOptions {
+	/**
+	 * Initialize a grid from a string. Each grid row must be
+	 * separated by a new line character and have the same
+	 * number of characters per row.
+	 */
 	serialized?: string;
+
+	/**
+	 * Optional (defaults to space). If initializing a blank 
+	 * grid, fill each cell with this character. Must be a 
+	 * single-character string.
+	 */
 	fillWith?: string;
+
+	/**
+	 * Number of rows for this new blank grid.
+	 */
 	rowCount?: number;
+
+	/**
+	 * Number of columns for this new blank grid.
+	 */
 	colCount?: number;
 }
 
+/**
+ * Settings for copying a grid
+ */
 export interface CopyGridOptions {
-	startRow?: number;
-	startCol?: number;
-	endRow?: number;
-	endCol?: number;
-	rowCount?: number;
-	colCount?: number;
+	/**
+	 * Row in the source grid to start copying from. Defaults to 0.
+	 */
+	srcStartRow?: number;
+
+	/**
+	 * Column in the source grid to start copying from. Defaults to 0.
+	 */
+	srcStartCol?: number;
+
+	/**
+	 * Row in the source grid to finish copying from. Defaults to the row
+	 * at srcStartRow + srcRowCount.
+	 */
+	srcEndRow?: number;
+
+	/**
+	 * Column in the source grid to finish copying from. Defaults to the
+	 * column at srcStartCol + srcColCount.
+	 */
+	srcEndCol?: number;
+
+	/**
+	 * Number of source rows to copy. Defaults to all remaining rows.
+	 */
+	srcRowCount?: number;
+
+	/**
+	 * Number of source columns to copy. Defaults to all remaining columns.
+	 */
+	srcColCount?: number;
+
+	/**
+	 * Number of rows in the destination grid. Defaults to the number of
+	 * copied rows from the source grid.
+	 */
+	destRowCount?: number;
+
+	/**
+	 * Number of columns in the destination grid. Defaults to the number
+	 * of copied rows from the source grid.
+	 */
+	destColCount?: number;
+
+	/**
+	 * The row index to begin copying data to in the destination grid.
+	 * Defaults to 0.
+	 */
+	destStartRow?: number;
+
+	/**
+	 * The column index to begin copying data to in the destination grid.
+	 * Defaults to 0.
+	 */
+	destStartCol?: number;
+
+	/**
+	 * If false, leave the destination grid blank. Defaults to true.
+	 */
 	copyValues?: boolean;
 }
 
+/**
+ * Tuple describing a (row, column) position on a grid.
+ */
 export type GridPos = [row: number, col: number];
+
+/**
+ * Options for moving from cell-to-cell
+ * - "wrap": If you go off the edge of the grid, wrap over
+ *           to the other edge on the same axis.
+ * - "stay": If you go off the edge, just return the cell
+ *           on that edge.
+ * - "none": If you go off the edge, return undefined.
+ */
+export type MoveOption = "wrap" | "stay" | "none";
 
 const colorOrder = [
 	chalk.yellowBright,
@@ -29,6 +120,11 @@ const colorOrder = [
 	chalk.redBright,
 	chalk.cyanBright,
 ];
+
+/**
+ * Character-based Grid data structure. Grids have finite size.
+ * Each cell is expected to be a single printable character.
+ */
 export class Grid {
 	private numRows: number;
 	private numCols: number;
@@ -53,14 +149,25 @@ export class Grid {
 		}
 	}
 
+	/**
+	 * Number of rows in this grid.
+	 */
 	public get rowCount() {
 		return this.numRows;
 	}
 
+	/**
+	 * Number of columns in this grid.
+	 */
 	public get colCount() {
 		return this.numCols;
 	}
 
+	/**
+	 * Clears all of the grid's data and fills it with the
+	 * given character.
+	 * @param fillWith Character to fill the grid with. Defaults to a space.
+	 */
 	public initBlankGrid(fillWith: string | undefined) {
 		this.grid = [];
 		for (const i of _.range(this.numRows)) {
@@ -70,6 +177,13 @@ export class Grid {
 			}
 		}
 	}
+
+	/**
+	 * Clears all of the grid's data and fills it with the given serialized grid.
+	 * Defaults to updating the grid's dimensions to the given serialized grid's dimensions.
+	 * @param serialized 
+	 * @param updateDimensions 
+	 */
 	public setFromSerialized(serialized: string, updateDimensions: boolean = true) {
 		const serialRows = serialized.split("\n");
 
@@ -105,6 +219,12 @@ export class Grid {
 		}
 	}
 
+	/**
+	 * Start queueing all subsequent updates to grid cell values. Do not
+	 * update the grid until commit() is called. This is useful when you need
+	 * to edit cells based on their surroundings, but not commit any changes
+	 * until each cell has been visited (e.g. game of life).
+	 */
 	public batchUpdates() {
 		if (this.batchUpdatedGrid != undefined) {
 			throw new Error("Already batch updating. Must commit those changes first.");
@@ -112,6 +232,10 @@ export class Grid {
 		this.batchUpdatedGrid = new Grid({ serialized: this.toString() });
 	}
 
+	/**
+	 * Commit all queued changes from batchUpdates(). Further batched updates will
+	 * require another call to batchUpdates().
+	 */
 	public commit() {
 		if (this.batchUpdatedGrid == undefined) {
 			throw new Error("Have not called batchUpdates().");
@@ -122,6 +246,32 @@ export class Grid {
 		this.batchUpdatedGrid = undefined;
 	}
 
+	/**
+	 * Returns a grid AS IF all current batched updates were applied.
+	 * Any mutations made to this grid WILL be committed next time
+	 * commit() is called! If you need a copy, use copyGrid().
+	 */
+	public peekBatchedUpdates() {
+		if (this.batchUpdatedGrid == undefined) {
+			throw new Error("Have not called batchUpdates().");
+		}
+		return this.batchUpdatedGrid;
+	}
+
+	/**
+	 * Discard all batched updates without committing to the grid.
+	 */
+	public rollback() {
+		this.batchUpdatedGrid = undefined;
+	}
+
+	/**
+	 * Set the value of a cell.
+	 * @param pos The position of the cell to set the value of
+	 * @param val A single character string value of the cell
+	 * @param ignoreBatch If true, bypass the batched updates 
+	 * queue and set the value directly on the grid.
+	 */
 	public setCell(pos: GridPos, val: string, ignoreBatch = false) {
 		if (this.batchUpdatedGrid && !ignoreBatch) {
 			this.batchUpdatedGrid.setCell(pos, val);
@@ -131,6 +281,13 @@ export class Grid {
 		}
 	}
 
+	/**
+	 * Get a single cell based on a criterion. If multiple cells match, get the first.
+	 * @param input Can be one of: 
+	 *   GridPos: identifies a single cell based on its row and column
+	 *    string: the value of the cell
+	 *  Function: a predicate that is called on each cell in order.
+	 */
 	public getCell(input: GridPos | string | ((cell: Cell) => boolean)) {
 		let pos: GridPos | undefined = undefined;
 		if (typeof input === "string") {
@@ -154,6 +311,13 @@ export class Grid {
 		}
 	}
 
+	/**
+	 * Get an array of cells based on a criterion.
+	 * @param input Can be one of: 
+	 *   GridPos[]: List of grid positions of cells to return
+	 *      string: the value of the cell.
+	 *    Function: a predicate that is called on each cell in order.
+	 */
 	public getCells(input: GridPos[] | string | ((cell: Cell) => boolean)) {
 		const result: Cell[] = [];
 		if (typeof input === "string") {
@@ -180,17 +344,21 @@ export class Grid {
 		}
 	}
 	
-	public copyGrid(_options?: CopyGridOptions) {
-		const options = _options ?? {};
-		const startRow = options.startRow ?? 0;
-		const startCol = options.startCol ?? 0;
-		const rowCount = options.rowCount ?? this.rowCount - startRow;
-		const colCount = options.colCount ?? this.colCount - startCol;
-		const endRow = options.endRow ?? startRow + rowCount - 1;
-		const endCol = options.endCol ?? startCol + colCount - 1;
+	/**
+	 * Copy a grid to a new grid. Defaults to making an identical copy.
+	 * @param options See CopyGridOptions for details.
+	 */
+	public copyGrid(options?: CopyGridOptions) {
+		const _options = options ?? {};
+		const startRow = _options.srcStartRow ?? 0;
+		const startCol = _options.srcStartCol ?? 0;
+		const rowCount = _options.srcRowCount ?? this.rowCount - startRow;
+		const colCount = _options.srcColCount ?? this.colCount - startCol;
+		const endRow = _options.srcEndRow ?? startRow + rowCount - 1;
+		const endCol = _options.srcEndCol ?? startCol + colCount - 1;
 
 		const subgrid = new Grid({ rowCount, colCount });
-		if (options.copyValues !== false) {
+		if (_options.copyValues !== false) {
 			for (let i = startRow; i <= endRow; ++i) {
 				for (let j = startCol; j <= endCol; ++j) {
 					subgrid.setCell([i - startRow, j - startCol], this.getValue([i, j]));
@@ -200,10 +368,18 @@ export class Grid {
 		return subgrid;
 	}
 
+	/**
+	 * Gets the value of a single cell
+	 * @param pos The position of the cell to get the value from
+	 */
 	public getValue(pos: GridPos) {
 		return this.grid[pos[0]][pos[1]];
 	}
 
+	/**
+	 * Serializes a grid to a flat string, rows separated by 
+	 * newline characters.
+	 */
 	public toString() {
 		let str = "";
 		for (let i = 0; i < this.grid.length; ++i) {
@@ -217,6 +393,11 @@ export class Grid {
 		return str;
 	}
 
+	/**
+	 * Logs a grid to the console with colored grid cell values
+	 * @param printGridInfo If true, prints a line describing the
+	 * number of rows and columns in the grid.
+	 */
 	public log(printGridInfo: boolean = true) {
 		if (printGridInfo) {
 			console.log(`Grid with ${this.grid.length} rows and ${this.grid[0].length} columns.`);
@@ -231,6 +412,10 @@ export class Grid {
 		console.log();
 	}
 
+	/**
+	 * Iterate cell-by-cell in the grid, starting with the top-left cell, moving
+	 * through the whole row before moving down to the next row.
+	 */
 	public [Symbol.iterator]() {
 		let row = 0;
 		let col = 0;
@@ -260,30 +445,50 @@ export class Grid {
 	}
 }
 
+/**
+ * Describes a Cell within a Grid. Please note the encapsulation relationship:
+ * Cell contains a Grid member, not the other way around! Methods on the Cell
+ * class are all convenience methods that call back to the parent grid. A Cell
+ * is immutable! Its value is stored on the parent grid.
+ */
 export class Cell {
 	private grid: Grid;
 	private pos: GridPos;
-	private val: string;
 
 	constructor(grid: Grid, pos: GridPos, value: string) {
 		this.grid = grid;
 		this.pos = pos;
-		this.val = value;
 	}
 
+	/**
+	 * Gets the value of the cell.
+	 */
 	public get value() {
-		return this.val;
+		return this.grid.getValue(this.pos);
 	}
 
+	/**
+	 * Gets the position of the cell.
+	 */
 	public get position() {
 		return this.pos;
 	}
 
+	/**
+	 * Gets the overall flat index of this cell. For example, 
+	 * the cell on the 2nd row in the first column of a grid with
+	 * 10 columns will have an index of 10 (0-based).
+	 */
 	public get index() {
 		return this.pos[0] * this.grid.colCount + this.pos[1];
 	}
 
-	public north(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+	/**
+	 * Return the cell found `count` cells above of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public north(count = 1, moveOption: MoveOption = "none") {
 		let newRow = this.pos[0] - count;
 		if (moveOption === "wrap") {
 			newRow = util.mod(newRow, this.grid.rowCount);
@@ -293,7 +498,12 @@ export class Cell {
 		return this.grid.getCell([newRow, this.pos[1]]);
 	}
 
-	public east(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+	/**
+	 * Return the cell found `count` cells right of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public east(count = 1, moveOption: MoveOption = "none") {
 		let newCol = this.pos[1] + count;
 		if (moveOption === "wrap") {
 			newCol = util.mod(newCol, this.grid.colCount);
@@ -303,7 +513,12 @@ export class Cell {
 		return this.grid.getCell([this.pos[0], newCol]);
 	}
 
-	public south(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+	/**
+	 * Return the cell found `count` cells below of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public south(count = 1, moveOption: MoveOption = "none") {
 		let newRow = this.pos[0] + count;
 		if (moveOption === "wrap") {
 			newRow = util.mod(newRow, this.grid.rowCount);
@@ -313,7 +528,12 @@ export class Cell {
 		return this.grid.getCell([newRow, this.pos[1]]);
 	}
 
-	public west(count = 1, moveOption: "wrap" | "stay" | "none" = "none") {
+	/**
+	 * Return the cell found `count` cells left of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public west(count = 1, moveOption: MoveOption = "none") {
 		let newCol = this.pos[1] - count;
 		if (moveOption === "wrap") {
 			newCol = util.mod(newCol, this.grid.colCount);
@@ -323,6 +543,11 @@ export class Cell {
 		return this.grid.getCell([this.pos[0], newCol]);
 	}
 
+	/**
+	 * Get an array of this cell's neighbors. Internal cells have four
+	 * neighbors, while edge cells have three, and corner cells have two.
+	 * @param includeDiagonals Also include the 4 diagonal neighbors.
+	 */
 	public neighbors(includeDiagonals = false) {
 		if (includeDiagonals) {
 			return [
@@ -340,22 +565,37 @@ export class Cell {
 		}
 	}
 
+	/**
+	 * Returns true if this cell is on the top row of the grid.
+	 */
 	public isNorthEdge() {
 		return this.north() == undefined;
 	}
 
+	/**
+	 * Returns true if this cell is on the rightmost column of the grid.
+	 */
 	public isEastEdge() {
 		return this.east() == undefined;
 	}
 
+	/**
+	 * Returns true if this cell is last row of the grid.
+	 */
 	public isSouthEdge() {
 		return this.south() == undefined;
 	}
 
+	/**
+	 * Returns true if this cell is on the leftmost column of the grid.
+	 */
 	public isWestEdge() {
 		return this.west() == undefined;
 	}
 
+	/**
+	 * Returns true if the cell is in a corner of the grid.
+	 */
 	public isCorner() {
 		return (
 			(this.isNorthEdge() && this.isEastEdge()) ||
@@ -365,12 +605,19 @@ export class Cell {
 		);
 	}
 
+	/**
+	 * Set the value of this cell (calls to parent grid)
+	 * @param val Single-character string value to set
+	 */
 	public setValue(val: string) {
 		this.grid.setCell(this.pos, val);
 	}
 
+	/**
+	 * Returns a string representation of this cell's position and value.
+	 */
 	public toString() {
-		return `[${this.pos[0]}, ${this.pos[1]}]: ${this.val}`;
+		return `[${this.pos[0]}, ${this.pos[1]}]: ${this.value}`;
 	}
 }
 
