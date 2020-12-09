@@ -56,7 +56,7 @@ async function run() {
 	}];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day8_part1(testCase.input)));

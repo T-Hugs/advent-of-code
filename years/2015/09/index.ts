@@ -83,7 +83,7 @@ Dublin to Belfast = 141`,
 	const part2tests: TestCase[] = [];
 
 	// Run tests
-	test.beginTests()
+	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2015day9_part1(testCase.input)));
