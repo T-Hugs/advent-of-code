@@ -22,17 +22,6 @@ export function replaceAll(corpus: string, replacements: { [search: string]: str
 	return current;
 }
 
-export function msToString(ms: number) {
-	if (ms < 10000) {
-		return ms + "ms";
-	} else if (ms < 60000) {
-		return ms / 1000 + "sec";
-	} else {
-		const mins = Math.floor(ms / 60000);
-		return mins + "min " + (ms % 60000) / 1000 + "sec";
-	}
-}
-
 export function splitTimeIntoUnits(ms: number) {
 	let remaining = ms;
 	const result: { [key: string]: number } = {
@@ -59,7 +48,7 @@ export function splitTimeIntoUnits(ms: number) {
 		remaining -= result.sec * 1000;
 	}
 	if (remaining > 0) {
-		result.ms = Math.round(remaining);
+		result.ms = remaining;
 	}
 	return result;
 }
@@ -70,8 +59,17 @@ export function formatTime(ms: number, unitsOfPrecision: number = Number.MAX_SAF
 	entries.sort((a, b) => TIME_UNIT_ORDER.indexOf(a[0]) - TIME_UNIT_ORDER.indexOf(b[0]));
 	let result: string[] = [];
 	const startIndex = entries.findIndex(e => e[1] !== 0);
-	for (let i = startIndex; i < startIndex + Math.min(entries.length, unitsOfPrecision); ++i) {
-		result.push(entries[i][1] + entries[i][0]);
+	for (let i = startIndex; i < Math.min(entries.length, startIndex + unitsOfPrecision); ++i) {
+		if (entries[i][0] === "ms") {
+			if (i === startIndex + unitsOfPrecision - 1) {
+				result.push(Math.round(entries[i][1]) + entries[i][0]);
+			} else {
+				const microseconds = Math.round(entries[i][1] * 1000) / 1000;
+				result.push(microseconds + entries[i][0]);
+			}
+		} else {
+			result.push(Math.round(entries[i][1]) + entries[i][0]);
+		}
 	}
 	return result.join(" ");
 }

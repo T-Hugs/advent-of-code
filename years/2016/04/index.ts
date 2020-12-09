@@ -112,8 +112,8 @@ totally-real-room-200[decoy]`,
 	logSolution(4, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
-	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
-	log(chalk.gray(`Part 2: ${util.msToString(part2After - part2Before)}`));
+	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
+	log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
 	log();
 }
 

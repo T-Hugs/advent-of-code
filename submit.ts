@@ -1,5 +1,5 @@
 import { LocalStorage } from "node-localstorage";
-import { getAppRoot, wait } from "./util/util";
+import { formatTime, getAppRoot, wait } from "./util/util";
 import path from "path";
 import { SolutionObject, solutionLogKey } from "./util/log";
 import fetch from "node-fetch";
@@ -92,7 +92,7 @@ async function submit() {
 	const msTillCooldown = getMsUntilActiveCooldownExpiration(solutionLog);
 	if (msTillCooldown > 0) {
 		console.log(
-			`Waiting ${msTillCooldown}ms until cooldown expiration before automatically submitting. Ctrl+C to abort.`
+			`Waiting ${formatTime(msTillCooldown)} until cooldown expiration before automatically submitting. Ctrl+C to abort.`
 		);
 	}
 	await wait(msTillCooldown);

@@ -234,7 +234,7 @@ async function run() {
 	logSolution(25, 2019, part1Solution);
 
 	log(chalk.gray("--- Performance ---"));
-	log(chalk.gray(`Part 1: ${util.msToString(part1After - part1Before)}`));
+	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
 	log();
 }
 
