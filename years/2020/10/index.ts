@@ -151,7 +151,13 @@ async function run() {
 4
 5`,
 			expected: `13`,
-		},
+		},{
+			input: `1
+2
+3
+4`,
+			expected: `4`
+		}
 	];
 
 	// Run tests
