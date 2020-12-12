@@ -14,8 +14,8 @@ export interface GridOptions {
 	serialized?: string;
 
 	/**
-	 * Optional (defaults to space). If initializing a blank 
-	 * grid, fill each cell with this character. Must be a 
+	 * Optional (defaults to space). If initializing a blank
+	 * grid, fill each cell with this character. Must be a
 	 * single-character string.
 	 */
 	fillWith?: string;
@@ -95,6 +95,12 @@ export interface CopyGridOptions {
 	 * If false, leave the destination grid blank. Defaults to true.
 	 */
 	copyValues?: boolean;
+
+	/**
+	 * If the new grid is larger than the source grid, initialize those
+	 * new cells with this value.
+	 */
+	fillNewCellsWith?: string;
 }
 
 /**
@@ -181,8 +187,8 @@ export class Grid {
 	/**
 	 * Clears all of the grid's data and fills it with the given serialized grid.
 	 * Defaults to updating the grid's dimensions to the given serialized grid's dimensions.
-	 * @param serialized 
-	 * @param updateDimensions 
+	 * @param serialized
+	 * @param updateDimensions
 	 */
 	public setFromSerialized(serialized: string, updateDimensions: boolean = true) {
 		const serialRows = serialized.split("\n");
@@ -269,7 +275,7 @@ export class Grid {
 	 * Set the value of a cell.
 	 * @param pos The position of the cell to set the value of
 	 * @param val A single character string value of the cell
-	 * @param ignoreBatch If true, bypass the batched updates 
+	 * @param ignoreBatch If true, bypass the batched updates
 	 * queue and set the value directly on the grid.
 	 */
 	public setCell(pos: GridPos, val: string, ignoreBatch = false) {
@@ -283,7 +289,7 @@ export class Grid {
 
 	/**
 	 * Get a single cell based on a criterion. If multiple cells match, get the first.
-	 * @param input Can be one of: 
+	 * @param input Can be one of:
 	 *   GridPos: identifies a single cell based on its row and column
 	 *    string: the value of the cell
 	 *  Function: a predicate that is called on each cell in order.
@@ -313,7 +319,7 @@ export class Grid {
 
 	/**
 	 * Get an array of cells based on a criterion.
-	 * @param input Can be one of: 
+	 * @param input Can be one of:
 	 *   GridPos[]: List of grid positions of cells to return
 	 *      string: the value of the cell.
 	 *    Function: a predicate that is called on each cell in order.
@@ -343,25 +349,36 @@ export class Grid {
 			return result;
 		}
 	}
-	
+
 	/**
 	 * Copy a grid to a new grid. Defaults to making an identical copy.
 	 * @param options See CopyGridOptions for details.
 	 */
 	public copyGrid(options?: CopyGridOptions) {
 		const _options = options ?? {};
-		const startRow = _options.srcStartRow ?? 0;
-		const startCol = _options.srcStartCol ?? 0;
-		const rowCount = _options.srcRowCount ?? this.rowCount - startRow;
-		const colCount = _options.srcColCount ?? this.colCount - startCol;
-		const endRow = _options.srcEndRow ?? startRow + rowCount - 1;
-		const endCol = _options.srcEndCol ?? startCol + colCount - 1;
+		const srcStartRow = _options.srcStartRow ?? 0;
+		const srcStartCol = _options.srcStartCol ?? 0;
+		const srcEndRow = _options.srcEndRow ?? this.rowCount - 1; // srcStartRow + srcRowCount - 1;
+		const srcEndCol = _options.srcEndCol ?? this.colCount - 1; // srcStartCol + srcColCount - 1;
+		const srcRowCount = _options.srcRowCount ?? srcEndRow - srcStartRow + 1;
+		const srcColCount = _options.srcColCount ?? srcEndCol - srcStartCol + 1;
+		const destRowCount = _options.destRowCount ?? srcRowCount;
+		const destColCount = _options.destColCount ?? srcColCount;
+		const destStartRow = _options.destStartRow ?? 0;
+		const destStartCol = _options.destStartCol ?? 0;
 
-		const subgrid = new Grid({ rowCount, colCount });
+		const subgrid = new Grid({
+			rowCount: destRowCount,
+			colCount: destColCount,
+			fillWith: options?.fillNewCellsWith,
+		});
 		if (_options.copyValues !== false) {
-			for (let i = startRow; i <= endRow; ++i) {
-				for (let j = startCol; j <= endCol; ++j) {
-					subgrid.setCell([i - startRow, j - startCol], this.getValue([i, j]));
+			for (let i = srcStartRow; i < srcStartRow + srcRowCount; ++i) {
+				for (let j = srcStartCol; j < srcStartCol + srcColCount; ++j) {
+					subgrid.setCell(
+						[i - srcStartRow + destStartRow, j - srcStartCol + destStartCol],
+						this.getValue([i, j])
+					);
 				}
 			}
 		}
@@ -377,7 +394,7 @@ export class Grid {
 	}
 
 	/**
-	 * Serializes a grid to a flat string, rows separated by 
+	 * Serializes a grid to a flat string, rows separated by
 	 * newline characters.
 	 */
 	public toString() {
@@ -475,7 +492,7 @@ export class Cell {
 	}
 
 	/**
-	 * Gets the overall flat index of this cell. For example, 
+	 * Gets the overall flat index of this cell. For example,
 	 * the cell on the 2nd row in the first column of a grid with
 	 * 10 columns will have an index of 10 (0-based).
 	 */
@@ -642,4 +659,31 @@ if (require.main === module) {
 		c => c.neighbors(true).filter(n => n.value === ".").length === 2
 	).length;
 	console.log(`Num cells w/ 2 neighbors that are dots: ${cellsThatHaveTwoDotNeighbors} (expect 8)`);
+
+	// Copy to new grid with 2 row/column thick border of empty cells.
+	const borderSize = 2;
+	const borderGrid = g.copyGrid({
+		fillNewCellsWith: "#",
+		destRowCount: g.rowCount + 2 * borderSize,
+		destColCount: g.colCount + 2 * borderSize,
+		destStartRow: borderSize,
+		destStartCol: borderSize,
+	});
+	borderGrid.log();
+
+	// Copy half of the grid to new grid, a few different ways
+	const topHalf1 = g.copyGrid({
+		srcRowCount: Math.floor(g.rowCount / 2),
+	});
+	topHalf1.log();
+
+	const topHalf2 = g.copyGrid({
+		srcEndRow: Math.floor(g.rowCount / 2),
+	});
+	topHalf2.log();
+
+	const botHalf1 = g.copyGrid({
+		srcStartRow: Math.floor(g.rowCount / 2),
+	});
+	botHalf1.log();
 }
