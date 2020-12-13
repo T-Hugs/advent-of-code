@@ -140,6 +140,28 @@ export function mod(a: number, n: number) {
 	return ((a % n) + n) % n;
 }
 
+export function gcd(a: number, b: number) {
+	a = Math.abs(a);
+	b = Math.abs(b);
+
+	if (b > a) {
+		var temp = a;
+		a = b;
+		b = temp;
+	}
+
+	while (true) {
+		a %= b;
+		if (a === 0) {
+			return b;
+		}
+		b %= a;
+		if (b === 0) {
+			return a;
+		}
+	}
+}
+
 export function gcdExtended(_a: number | bigint, _b: number | bigint) {
 	let [a, b] = [_a, _b].map(BigInt);
 	let x = 0n,
@@ -153,6 +175,16 @@ export function gcdExtended(_a: number | bigint, _b: number | bigint) {
 	}
 	return [b, x, y];
 }
+
+export function lcm(nums: bigint[]) {
+	return nums.reduce((p, c) => (p * c) / BigInt(gcd(Number(p), Number(c))), 1n);
+}
+
+/**
+ * modular multiplicative inverse
+ * @param _a
+ * @param _m
+ */
 export function modInverse(_a: number | bigint, _m: number | bigint) {
 	const [a, m] = [_a, _m].map(BigInt);
 	const [g, x] = gcdExtended(a, m);

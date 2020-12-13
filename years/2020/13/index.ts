@@ -35,9 +35,23 @@ async function p2020day13_part1(input: string) {
 	}
 }
 
+/**
+ * compute the chinese remainder theorem, crt (for searching if needed later!)
+ */
+function chineseRemainderTheorem(remainders: bigint[], mods: bigint[]) {
+	const prod = mods.reduce((p, c) => p * c, 1n);
+	return (
+		mods
+			.map((val: bigint, index: number) => {
+				const p = prod / val;
+				return remainders[index] * p * util.modInverse(p, val);
+			})
+			.reduce((p, c) => p + c, 0n) % prod
+	);
+}
+
 async function p2020day13_part2(input: string) {
 	const lines = input.split("\n");
-	const depart = Number(lines[0]);
 	const ids: Obj<number> = {};
 	let i = 0;
 	for (const e of lines[1].split(",")) {
@@ -46,49 +60,37 @@ async function p2020day13_part2(input: string) {
 		}
 		i++;
 	}
-	let wa = "solve x = ";
-	for (const bus of Object.keys(ids)) {
-		let mod = ids[bus];
-		let rhs = Number(bus);
-		wa += `x = ${rhs} (mod ${mod}), `
-	}
 
-	return wa;
+	// @todo clean up all the BigInt crap
+	const lcm = util.lcm(Object.values(ids).map(i => BigInt(i)));
+	const crt = chineseRemainderTheorem(
+		Object.keys(ids).map(i => BigInt(i)),
+		Object.values(ids).map(i => BigInt(i))
+	);
 
-	// A = 7x
-	// A = 13y - 1
-	// A = 59z - 4
-	// A = 31w - 6
-	// A = 19v - 7
-
-	// A = 0 (mod 7)
-	// A = 1 (mod 13)
-	// A = 4 (mod 59)
-	// A = 6 (mod 31)
-	// A = 7 (mod 19)
-
-	//, x = 48 (mod 29), x = 50 (mod 853), x = 56 (mod 37), x = 73 (mod 23)
-
-// lcm 19, 41, 523, 17, 13, 29, 853, 37, 23 = 1895431131329359
-//x = 0 (mod 19), x = 9 (mod 41), x = 19 (mod 523), x = 36 (mod 17), x = 37 (mod 13), x = 48 (mod 29), x = 50 (mod 853), x = 56 (mod 37), x = 73 (mod 23), = 1684818206450117
-
+	return lcm - crt;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [{
-		input: `939
+	const part1tests: TestCase[] = [
+		{
+			input: `939
 7,13,x,x,59,x,31,19`,
-		expected: `295`
-	}];
-	const part2tests: TestCase[] = [{
-		input: `
+			expected: `295`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `
 7,13,x,x,59,x,31,19`,
-		expected: `1068781`
-	},{
-		input: `
+			expected: `1068781`,
+		},
+		{
+			input: `
 17,x,13,19`,
-		expected: `3417`
-	}];
+			expected: `3417`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
@@ -109,10 +111,10 @@ async function run() {
 	const part1Solution = String(await p2020day13_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day13_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(13, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
