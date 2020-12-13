@@ -4,7 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
-import { Grid } from "../../../util/grid";
+import { Dir, Grid } from "../../../util/grid";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
@@ -18,88 +18,39 @@ LOGUTIL.setDebug(DEBUG);
 
 async function p2020day11_part1(input: string) {
 	const grid = new Grid({ serialized: input });
-	while (true) {
-		grid.batchUpdates();
-		let changed = false;
-		for (const cell of grid) {
+	grid.simulateCellularAutomata(
+		(grid, changes) => changes,
+		cell => {
 			const neighbors = cell.neighbors(true);
 			if (cell.value === "L") {
 				if (neighbors.every(n => n.value === "L" || n.value === ".")) {
-					changed = true;
-					cell.setValue("#");
+					return "#";
 				}
 			} else if (cell.value === "#") {
 				if (neighbors.filter(n => n.value === "#").length >= 4) {
-					changed = true;
-					cell.setValue("L");
+					return "L";
 				}
 			}
 		}
-		grid.commit();
-		if (!changed) {
-			return grid.getCells(c => c.value === "#").length;
-		}
-	}
+	);
+	return grid.getCells(c => c.value === "#").length;
 }
 
 async function p2020day11_part2(input: string) {
 	const grid = new Grid({ serialized: input });
-	while (true) {
-		grid.batchUpdates();
-		let changed = false;
-		for (const cell of grid) {
-			let north = cell.north();
-			while (north && north.value === ".") {
-				north = north.north();
-			}
-			let east = cell.east();
-			while (east && east.value === ".") {
-				east = east.east();
-			}
-			let south = cell.south();
-			while (south && south.value === ".") {
-				south = south.south();
-			}
-			let west = cell.west();
-			while (west && west.value === ".") {
-				west = west.west();
-			}
-			let northeast = cell.north()?.east();
-			while (northeast && northeast.value === ".") {
-				northeast = northeast.north()?.east();
-			}
-			let southeast = cell.south()?.east();
-			while (southeast && southeast.value === ".") {
-				southeast = southeast.south()?.east();
-			}
-			let southwest = cell.south()?.west();
-			while (southwest && southwest.value === ".") {
-				southwest = southwest.south()?.west();
-			}
-			let northwest = cell.north()?.west();
-			while (northwest && northwest.value === ".") {
-				northwest = northwest.north()?.west();
-			}
-			const neighbors = [north, south, west, east, northeast, southeast, northwest, southwest];
-			if (cell.value === "#") {
-				if (neighbors.filter(n => n != undefined && n.value === "#").length >= 5) {
-					changed = true;
-					cell.setValue("L");
-				}
-			} else if (cell.value === "L") {
-				const num = neighbors.filter(n => n == undefined || n.value === "L").length;
-				if (num === 8) {
-					changed = true;
-					cell.setValue("#");
-				}
+	const dirs = "N S E W NE NW SE SW".split(" ");
+	grid.simulateCellularAutomata(
+		(grid, hasChanges) => hasChanges,
+		cell => {
+			const neighbors = dirs.map(d => cell.repeatMovements([Dir[d]], cell => cell?.value === "."));
+			if (cell.value === "L" && neighbors.every(n => n == undefined || n.value === "L" || n.value === ".")) {
+				return "#";
+			} else if (cell.value === "#" && neighbors.filter(n => n != undefined && n!.value === "#").length >= 5) {
+				return "L";
 			}
 		}
-		grid.commit();
-		
-		if (!changed) {
-			return grid.getCells(c => c.value === "#").length;
-		}
-	}
+	);
+	return grid.getCells(c => c.value === "#").length;
 }
 
 async function run() {

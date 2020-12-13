@@ -38,7 +38,6 @@ async function p2020day12_part1(input: string) {
 			case "L":
 				currentDir = util.mod(currentDir - dist / 90, 4);
 				continue;
-
 			case "R":
 				currentDir = util.mod(currentDir + dist / 90, 4);
 				continue;

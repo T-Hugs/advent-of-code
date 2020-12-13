@@ -110,13 +110,15 @@ export type GridPos = [row: number, col: number];
 
 /**
  * Options for moving from cell-to-cell
- * - "wrap": If you go off the edge of the grid, wrap over
- *           to the other edge on the same axis.
- * - "stay": If you go off the edge, just return the cell
- *           on that edge.
- * - "none": If you go off the edge, return undefined.
+ * - "wrap":   If you go off the edge of the grid, wrap over
+ *             to the other edge on the same axis.
+ * - "stay":   If you go off the edge, just return the cell
+ *             on that edge.
+ * - "none":   If you go off the edge, return undefined.
+ * - Function: If a cell is returned, use that cell as the next
+ *             position. Otherwise acts like "none".
  */
-export type MoveOption = "wrap" | "stay" | "none";
+export type MoveOption = "wrap" | "stay" | "none" | ((cell: Cell | undefined, origin: Cell) => GridPos);
 
 const colorOrder = [
 	chalk.yellowBright,
@@ -126,6 +128,28 @@ const colorOrder = [
 	chalk.redBright,
 	chalk.cyanBright,
 ];
+
+/**
+ * List of common directions
+ */
+export const Dir: Obj<GridPos> = {
+	N: [-1, 0],
+	U: [-1, 0],
+
+	E: [0, 1],
+	R: [0, 1],
+
+	S: [1, 0],
+	D: [1, 0],
+
+	W: [0, -1],
+	L: [0, -1],
+
+	NE: [-1, 1],
+	SE: [1, 1],
+	SW: [1, -1],
+	NW: [-1, -1],
+};
 
 /**
  * Character-based Grid data structure. Grids have finite size.
@@ -386,6 +410,32 @@ export class Grid {
 	}
 
 	/**
+	 * Simulate a cellular automaton with the given cell update function
+	 * @param iterations      Number of iterations to run simulation, or a
+	 *                        function that returns false when it is done.
+	 * @param getNewCellValue The cell update function. Intended to update
+	 *                        the value of the given cell only.
+	 */
+	public simulateCellularAutomata(
+		iterations: number | ((grid: Grid, changesSinceLastIteration: boolean) => boolean),
+		getNewCellValue: (cell: Cell, grid: Grid) => string | undefined
+	) {
+		let changes = true;
+		for (let i = 0; typeof iterations === "number" ? i < iterations : iterations(this, changes); ++i) {
+			this.batchUpdates();
+			changes = false;
+			for (const cell of this) {
+				const newValue = getNewCellValue(cell, this);
+				if (newValue && newValue !== cell.value) {
+					cell.setValue(newValue);
+					changes = true;
+				}
+			}
+			this.commit();
+		}
+	}
+
+	/**
 	 * Gets the value of a single cell
 	 * @param pos The position of the cell to get the value from
 	 */
@@ -505,14 +555,11 @@ export class Cell {
 	 * @param count Number of cells to move
 	 * @param moveOption How to handle hitting the edge. @See MoveOption.
 	 */
-	public north(count = 1, moveOption: MoveOption = "none") {
-		let newRow = this.pos[0] - count;
-		if (moveOption === "wrap") {
-			newRow = util.mod(newRow, this.grid.rowCount);
-		} else if (moveOption === "stay") {
-			newRow = util.clamp(newRow, 0, this.grid.rowCount - 1);
-		}
-		return this.grid.getCell([newRow, this.pos[1]]);
+	public north(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none"
+	) {
+		return this.repeatMovements([Dir.N], count, moveOption);
 	}
 
 	/**
@@ -520,14 +567,11 @@ export class Cell {
 	 * @param count Number of cells to move
 	 * @param moveOption How to handle hitting the edge. @See MoveOption.
 	 */
-	public east(count = 1, moveOption: MoveOption = "none") {
-		let newCol = this.pos[1] + count;
-		if (moveOption === "wrap") {
-			newCol = util.mod(newCol, this.grid.colCount);
-		} else if (moveOption === "stay") {
-			newCol = util.clamp(newCol, 0, this.grid.colCount - 1);
-		}
-		return this.grid.getCell([this.pos[0], newCol]);
+	public east(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none"
+	) {
+		return this.repeatMovements([Dir.E], count, moveOption);
 	}
 
 	/**
@@ -535,14 +579,11 @@ export class Cell {
 	 * @param count Number of cells to move
 	 * @param moveOption How to handle hitting the edge. @See MoveOption.
 	 */
-	public south(count = 1, moveOption: MoveOption = "none") {
-		let newRow = this.pos[0] + count;
-		if (moveOption === "wrap") {
-			newRow = util.mod(newRow, this.grid.rowCount);
-		} else if (moveOption === "stay") {
-			newRow = util.clamp(newRow, 0, this.grid.rowCount - 1);
-		}
-		return this.grid.getCell([newRow, this.pos[1]]);
+	public south(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none"
+	) {
+		return this.repeatMovements([Dir.S], count, moveOption);
 	}
 
 	/**
@@ -550,14 +591,67 @@ export class Cell {
 	 * @param count Number of cells to move
 	 * @param moveOption How to handle hitting the edge. @See MoveOption.
 	 */
-	public west(count = 1, moveOption: MoveOption = "none") {
-		let newCol = this.pos[1] - count;
-		if (moveOption === "wrap") {
-			newCol = util.mod(newCol, this.grid.colCount);
-		} else if (moveOption === "stay") {
-			newCol = util.clamp(newCol, 0, this.grid.colCount - 1);
+	public west(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none"
+	) {
+		return this.repeatMovements([Dir.W], count, moveOption);
+	}
+
+	/**
+	 * Repeats the given list of movements several times to find a new cell.
+	 * @param movements List of moves to make
+	 * @param count Number of times to move through the whole list of movements
+	 *              or a function that returns false when done.
+	 * @param moveOption How to handle hitting the edge, or a custom function that
+	 *                   can return a new position.
+	 * @param forceOneMove If true, and if count is a function, force one iteration
+	 *                     of movement, regardless of what the count function returns
+	 *                     on the origin cell.
+	 */
+	public repeatMovements(
+		movements: [dRow: number, dCol: number][],
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none",
+		forceOneMove: boolean = true
+	) {
+		let nextPos = [...this.pos] as GridPos;
+		for (
+			let i = 0;
+			typeof count === "number"
+				? i < count
+				: (i === 0 && forceOneMove) || count(this.grid.getCell(nextPos), this);
+			++i
+		) {
+			let lastValidCell: Cell = this;
+			for (const movement of movements) {
+				nextPos[0] += movement[0];
+				nextPos[1] += movement[1];
+				const landedOn = this.grid.getCell(nextPos);
+				if (landedOn) {
+					lastValidCell = landedOn;
+				}
+			}
+			if (moveOption === "wrap") {
+				nextPos[0] = util.mod(nextPos[0], this.grid.rowCount);
+				nextPos[1] = util.mod(nextPos[1], this.grid.colCount);
+			} else if (moveOption === "stay") {
+				const prev = [...nextPos];
+				nextPos[0] = util.clamp(nextPos[0], 0, this.grid.rowCount - 1);
+				nextPos[1] = util.clamp(nextPos[1], 0, this.grid.colCount - 1);
+				if (nextPos[0] !== prev[0] || nextPos[1] !== prev[1]) {
+					nextPos[0] = lastValidCell.pos[0];
+					nextPos[1] = lastValidCell.pos[1];
+					break;
+				}
+			} else if (typeof moveOption === "function") {
+				const result = moveOption(this.grid.getCell(nextPos), this);
+				if (result) {
+					nextPos = result;
+				}
+			}
 		}
-		return this.grid.getCell([this.pos[0], newCol]);
+		return this.grid.getCell(nextPos);
 	}
 
 	/**
@@ -686,4 +780,28 @@ if (require.main === module) {
 		srcStartRow: Math.floor(g.rowCount / 2),
 	});
 	botHalf1.log();
+
+	async function conway(iterations: number = 100, rows: number = 30, cols: number = 50) {
+		const g = new Grid({ rowCount: rows, colCount: cols, fillWith: "." });
+		for (const cell of g) {
+			if (Math.random() < 0.25) {
+				cell.setValue("#");
+			}
+		}
+		g.log();
+		g.simulateCellularAutomata(iterations, cell => {
+			const neighbors = cell.neighbors(true).filter(n => n.value === "#");
+			if (cell.value === "#") {
+				if (neighbors.length < 2 || neighbors.length > 3) {
+					return ".";
+				}
+			} else if (cell.value === ".") {
+				if (neighbors.length === 3) {
+					return "#";
+				}
+			}
+		});
+		g.log();
+	}
+	conway();
 }
