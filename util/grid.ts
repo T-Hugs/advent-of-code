@@ -781,7 +781,7 @@ if (require.main === module) {
 	});
 	botHalf1.log();
 
-	async function conway(iterations: number = 100, rows: number = 30, cols: number = 50) {
+	function conway(iterations: number = 100, rows: number = 30, cols: number = 50) {
 		const g = new Grid({ rowCount: rows, colCount: cols, fillWith: "." });
 		for (const cell of g) {
 			if (Math.random() < 0.25) {
@@ -803,5 +803,4 @@ if (require.main === module) {
 		});
 		g.log();
 	}
-	conway();
 }
