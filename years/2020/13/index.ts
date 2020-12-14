@@ -37,6 +37,11 @@ async function p2020day13_part1(input: string) {
 
 /**
  * compute the chinese remainder theorem, crt (for searching if needed later!)
+ * Solves a system of modular equations in the form:
+ * x = rem1 (mod m1)
+ * x = rem2 (mod m2)
+ * x = rem3 (mod m3)
+ * ... etc
  */
 function chineseRemainderTheorem(remainders: bigint[], mods: bigint[]) {
 	const prod = mods.reduce((p, c) => p * c, 1n);
