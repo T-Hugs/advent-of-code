@@ -15,17 +15,57 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2020/15/data.txt
 // problem url  : https://adventofcode.com/2020/day/15
 
+function getLastSpoken(nums: number[], iterations: number) {
+	const mem: number[][] = new Array(iterations);
+	let i = 0;
+	for (const num of nums) {
+		mem[num] = [i++];
+	}
+
+	let mostRecentlySpoken = nums[nums.length - 1];
+	for (; i < iterations; ++i) {
+		const memLast = mem[mostRecentlySpoken];
+		if (memLast.length === 1) {
+			mem[0][1] = mem[0][0];
+			mem[0][0] = i;
+			mostRecentlySpoken = 0;
+		} else {
+			mostRecentlySpoken = memLast[0] - memLast[1];
+			const memNextToSpeak = mem[mostRecentlySpoken];
+			if (memNextToSpeak) {
+				memNextToSpeak[1] = memNextToSpeak[0];
+				memNextToSpeak[0] = i;
+			} else {
+				mem[mostRecentlySpoken] = [i];
+			}
+		}
+	}
+	return mostRecentlySpoken;
+}
+
 async function p2020day15_part1(input: string) {
-	return "Not implemented";
+	const nums = input.split(",").map(Number);
+	return getLastSpoken(nums, 2020);
 }
 
 async function p2020day15_part2(input: string) {
-	return "Not implemented";
+	const nums = input.split(",").map(Number);
+	return getLastSpoken(nums, 30_000_000);
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `0,3,6`,
+			expected: `436`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `0,3,6`,
+			expected: `175594`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
@@ -46,10 +86,10 @@ async function run() {
 	const part1Solution = String(await p2020day15_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day15_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(15, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
