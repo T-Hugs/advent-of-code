@@ -16,15 +16,105 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/12
 
 async function p2016day12_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const registers: Obj<number> = {};
+	function getVal(arg: string) {
+		let val: number = registers[arg] ?? 0;
+		if (/\d+/.test(arg)) {
+			val = Number(arg);
+		}
+		return val;
+	}
+	let pc = 0;
+	while (true) {
+		const line = lines[pc];
+		if (!line) {
+			break;
+		}
+		const split = line.split(" ");
+		const command = split[0];
+		if (command === "cpy") {
+			registers[split[2]] = getVal(split[1]);
+			pc++;
+		} else if (command === "inc") {
+			if (registers[split[1]] == undefined) {
+				registers[split[1]] = 0;
+			}
+			registers[split[1]]++;
+			pc++;
+		} else if (command === "dec") {
+			if (registers[split[1]] == undefined) {
+				registers[split[1]] = 0;
+			}
+			registers[split[1]]--;
+			pc++;
+		} else if (command === "jnz") {
+			if (getVal(split[1]) !== 0) {
+				pc += getVal(split[2]);
+			} else {
+				pc++;
+			}
+		}
+	}
+	return registers.a;
 }
 
 async function p2016day12_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const registers: Obj<number> = { c: 1 };
+	function getVal(arg: string) {
+		let val: number = registers[arg] ?? 0;
+		if (/\d+/.test(arg)) {
+			val = Number(arg);
+		}
+		return val;
+	}
+	let pc = 0;
+	while (true) {
+		const line = lines[pc];
+		if (!line) {
+			break;
+		}
+		const split = line.split(" ");
+		const command = split[0];
+		if (command === "cpy") {
+			registers[split[2]] = getVal(split[1]);
+			pc++;
+		} else if (command === "inc") {
+			if (registers[split[1]] == undefined) {
+				registers[split[1]] = 0;
+			}
+			registers[split[1]]++;
+			pc++;
+		} else if (command === "dec") {
+			if (registers[split[1]] == undefined) {
+				registers[split[1]] = 0;
+			}
+			registers[split[1]]--;
+			pc++;
+		} else if (command === "jnz") {
+			if (getVal(split[1]) !== 0) {
+				pc += getVal(split[2]);
+			} else {
+				pc++;
+			}
+		}
+	}
+	return registers.a;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `cpy 41 a
+inc a
+inc a
+dec a
+jnz a 2
+dec a`,
+			expected: `42`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
@@ -46,10 +136,10 @@ async function run() {
 	const part1Solution = String(await p2016day12_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day12_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(12, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
