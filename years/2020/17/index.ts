@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, { fill } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
@@ -16,16 +16,276 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/17
 
 async function p2020day17_part1(input: string) {
-	return "Not implemented";
+	const orig: Obj<boolean> = {};
+	const lines = input.split("\n");
+	let y = 0;
+	let z = 0;
+	for (const line of lines) {
+		let x = 0;
+		for (const char of line) {
+			if (char === "#") {
+				orig[`${x},${y},${z}`] = true;
+			}
+			x++;
+		}
+		y++;
+	}
+	let filled = orig;
+	const getNeighbors = (coord: string) => {
+		const [x,y,z] = coord.split(",").map(Number);
+		const neighbors: string[] = [];
+		neighbors.push(`${x - 1},${y - 1},${z - 1}`);
+		neighbors.push(`${x - 1},${y - 1},${z}`);
+		neighbors.push(`${x - 1},${y - 1},${z + 1}`);
+		neighbors.push(`${x - 1},${y},${z - 1}`);
+		neighbors.push(`${x - 1},${y},${z}`)
+		neighbors.push(`${x - 1},${y},${z + 1}`)
+		neighbors.push(`${x - 1},${y + 1},${z - 1}`);
+		neighbors.push(`${x - 1},${y + 1},${z}`);
+		neighbors.push(`${x - 1},${y + 1},${z + 1}`);
+		neighbors.push(`${x},${y - 1},${z - 1}`);
+		neighbors.push(`${x},${y - 1},${z}`);
+		neighbors.push(`${x},${y - 1},${z + 1}`);
+		neighbors.push(`${x},${y},${z - 1}`);
+		neighbors.push(`${x},${y},${z + 1}`)
+		neighbors.push(`${x},${y + 1},${z - 1}`);
+		neighbors.push(`${x},${y + 1},${z}`);
+		neighbors.push(`${x},${y + 1},${z + 1}`);
+		neighbors.push(`${x + 1},${y - 1},${z - 1}`);
+		neighbors.push(`${x + 1},${y - 1},${z}`);
+		neighbors.push(`${x + 1},${y - 1},${z + 1}`);
+		neighbors.push(`${x + 1},${y},${z - 1}`);
+		neighbors.push(`${x + 1},${y},${z}`)
+		neighbors.push(`${x + 1},${y},${z + 1}`)
+		neighbors.push(`${x + 1},${y + 1},${z - 1}`);
+		neighbors.push(`${x + 1},${y + 1},${z}`);
+		neighbors.push(`${x + 1},${y + 1},${z + 1}`);
+		return neighbors;
+	}
+	const getXRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[0]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[0]).map(Number))];
+	}
+	const getYRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[1]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[1]).map(Number))];
+	}
+	const getZRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[2]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[2]).map(Number))];
+	}
+
+
+	for (let i = 0; i < 6; ++i) {
+		const nextState: Obj<boolean> = {};
+		const xRange = getXRange(filled);
+		const yRange = getYRange(filled);
+		const zRange = getZRange(filled);
+
+		for (let x = xRange[0] - 1; x <= xRange[1] + 1; ++x) {
+			for (let y = yRange[0] - 1; y <= yRange[1] + 1; ++y) {
+				for (let z = zRange[0] - 1; z <= zRange[1] + 1; ++z) {
+					const coord = `${x},${y},${z}`;
+					const active = filled[coord];
+					const activeNeighbors = getNeighbors(coord).filter(n => filled[n]).length;
+					if (active) {
+						if (activeNeighbors === 2 || activeNeighbors === 3) {
+							nextState[coord] = true;
+						}
+					} else {
+						if (activeNeighbors === 3) {
+							nextState[coord] = true;
+						}
+					}
+				}
+			}
+		}
+		filled = nextState;
+	}
+	return Object.values(filled).filter(v => v === true).length;
 }
 
+// function _getNeighbors(coord: number[]): number[][] {
+// 	const dimensions = coord.length;
+// 	if (dimensions === 1) {
+// 		return [[coord[0] - 1], [coord[0]], [coord[0] + 1]];
+// 	} else {
+// 		const ldNeighbors = _getNeighbors(coord.slice(1));
+// 		const neighbors = [];
+// 		for (const ld of ldNeighbors) {
+// 			for (let i = -1; i <= 1; ++i) {
+// 				ldNeighbors.unshift(i + coord[0]);
+// 			}
+// 		}
+// 		return ldNeighbors;
+// 	}
+// }
+// function getNeighbors(coord: string) {
+// 	const neighbors = _getNeighbors(coord.split(",").map(Number)).map(n => n.join(","));
+// 	return neighbors.filter(n => n !== coord);
+// }
+
 async function p2020day17_part2(input: string) {
-	return "Not implemented";
+	//const n = getNeighbors("0,0");
+	const orig: Obj<boolean> = {};
+	const lines = input.split("\n");
+	let y = 0;
+	let z = 0;
+	let w = 0;
+	for (const line of lines) {
+		let x = 0;
+		for (const char of line) {
+			if (char === "#") {
+				orig[`${w},${x},${y},${z}`] = true;
+			}
+			x++;
+		}
+		y++;
+	}
+	let filled = orig;
+	const getNeighborsManual = (coord: string) => {
+		const [w,x,y,z] = coord.split(",").map(Number);
+		const neighbors: string[] = [];
+		neighbors.push(`${w - 1},${x - 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x - 1},${y - 1},${z}`);
+		neighbors.push(`${w - 1},${x - 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w - 1},${x - 1},${y},${z - 1}`);
+		neighbors.push(`${w - 1},${x - 1},${y},${z}`)
+		neighbors.push(`${w - 1},${x - 1},${y},${z + 1}`)
+		neighbors.push(`${w - 1},${x - 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x - 1},${y + 1},${z}`);
+		neighbors.push(`${w - 1},${x - 1},${y + 1},${z + 1}`);
+		neighbors.push(`${w - 1},${x},${y - 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x},${y - 1},${z}`);
+		neighbors.push(`${w - 1},${x},${y - 1},${z + 1}`);
+		neighbors.push(`${w - 1},${x},${y},${z - 1}`);
+		neighbors.push(`${w - 1},${x},${y},${z}`);
+		neighbors.push(`${w - 1},${x},${y},${z + 1}`)
+		neighbors.push(`${w - 1},${x},${y + 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x},${y + 1},${z}`);
+		neighbors.push(`${w - 1},${x},${y + 1},${z + 1}`);
+		neighbors.push(`${w - 1},${x + 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x + 1},${y - 1},${z}`);
+		neighbors.push(`${w - 1},${x + 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w - 1},${x + 1},${y},${z - 1}`);
+		neighbors.push(`${w - 1},${x + 1},${y},${z}`)
+		neighbors.push(`${w - 1},${x + 1},${y},${z + 1}`)
+		neighbors.push(`${w - 1},${x + 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w - 1},${x + 1},${y + 1},${z}`);
+		neighbors.push(`${w - 1},${x + 1},${y + 1},${z + 1}`);
+
+		neighbors.push(`${w},${x - 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w},${x - 1},${y - 1},${z}`);
+		neighbors.push(`${w},${x - 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w},${x - 1},${y},${z - 1}`);
+		neighbors.push(`${w},${x - 1},${y},${z}`)
+		neighbors.push(`${w},${x - 1},${y},${z + 1}`)
+		neighbors.push(`${w},${x - 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w},${x - 1},${y + 1},${z}`);
+		neighbors.push(`${w},${x - 1},${y + 1},${z + 1}`);
+		neighbors.push(`${w},${x},${y - 1},${z - 1}`);
+		neighbors.push(`${w},${x},${y - 1},${z}`);
+		neighbors.push(`${w},${x},${y - 1},${z + 1}`);
+		neighbors.push(`${w},${x},${y},${z - 1}`);
+		neighbors.push(`${w},${x},${y},${z + 1}`)
+		neighbors.push(`${w},${x},${y + 1},${z - 1}`);
+		neighbors.push(`${w},${x},${y + 1},${z}`);
+		neighbors.push(`${w},${x},${y + 1},${z + 1}`);
+		neighbors.push(`${w},${x + 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w},${x + 1},${y - 1},${z}`);
+		neighbors.push(`${w},${x + 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w},${x + 1},${y},${z - 1}`);
+		neighbors.push(`${w},${x + 1},${y},${z}`)
+		neighbors.push(`${w},${x + 1},${y},${z + 1}`)
+		neighbors.push(`${w},${x + 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w},${x + 1},${y + 1},${z}`);
+		neighbors.push(`${w},${x + 1},${y + 1},${z + 1}`);
+
+		neighbors.push(`${w + 1},${x - 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x - 1},${y - 1},${z}`);
+		neighbors.push(`${w + 1},${x - 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w + 1},${x - 1},${y},${z - 1}`);
+		neighbors.push(`${w + 1},${x - 1},${y},${z}`)
+		neighbors.push(`${w + 1},${x - 1},${y},${z + 1}`)
+		neighbors.push(`${w + 1},${x - 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x - 1},${y + 1},${z}`);
+		neighbors.push(`${w + 1},${x - 1},${y + 1},${z + 1}`);
+		neighbors.push(`${w + 1},${x},${y - 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x},${y - 1},${z}`);
+		neighbors.push(`${w + 1},${x},${y - 1},${z + 1}`);
+		neighbors.push(`${w + 1},${x},${y},${z - 1}`);
+		neighbors.push(`${w + 1},${x},${y},${z}`);
+		neighbors.push(`${w + 1},${x},${y},${z + 1}`)
+		neighbors.push(`${w + 1},${x},${y + 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x},${y + 1},${z}`);
+		neighbors.push(`${w + 1},${x},${y + 1},${z + 1}`);
+		neighbors.push(`${w + 1},${x + 1},${y - 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x + 1},${y - 1},${z}`);
+		neighbors.push(`${w + 1},${x + 1},${y - 1},${z + 1}`);
+		neighbors.push(`${w + 1},${x + 1},${y},${z - 1}`);
+		neighbors.push(`${w + 1},${x + 1},${y},${z}`)
+		neighbors.push(`${w + 1},${x + 1},${y},${z + 1}`)
+		neighbors.push(`${w + 1},${x + 1},${y + 1},${z - 1}`);
+		neighbors.push(`${w + 1},${x + 1},${y + 1},${z}`);
+		neighbors.push(`${w + 1},${x + 1},${y + 1},${z + 1}`);
+		return neighbors;
+	}
+	const getXRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[1]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[1]).map(Number))];
+	}
+	const getYRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[2]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[2]).map(Number))];
+	}
+	const getZRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[3]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[3]).map(Number))];
+	}
+	const getWRange = (filled: Obj<boolean>) => {
+		return [Math.min(...Object.keys(filled).map(k => k.split(",")[0]).map(Number)), Math.max(...Object.keys(filled).map(k => k.split(",")[0]).map(Number))];
+	}
+
+
+	for (let i = 0; i < 6; ++i) {
+		const nextState: Obj<boolean> = {};
+		const xRange = getXRange(filled);
+		const yRange = getYRange(filled);
+		const zRange = getZRange(filled);
+		const wRange = getZRange(filled);
+
+		for (let x = xRange[0] - 1; x <= xRange[1] + 1; ++x) {
+			for (let y = yRange[0] - 1; y <= yRange[1] + 1; ++y) {
+				for (let z = zRange[0] - 1; z <= zRange[1] + 1; ++z) {
+					for (let w = wRange[0] - 1; w <= wRange[1] + 1; ++w) {
+						const coord = `${w},${x},${y},${z}`;
+						const active = filled[coord];
+						const activeNeighbors = getNeighborsManual(coord).filter(n => filled[n]).length;
+						if (active) {
+							if (activeNeighbors === 2 || activeNeighbors === 3) {
+								nextState[coord] = true;
+							}
+						} else {
+							if (activeNeighbors === 3) {
+								nextState[coord] = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		filled = nextState;
+	}
+	return Object.values(filled).filter(v => v === true).length;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `.#.
+..#
+###`,
+		expected: `112`
+	}];
+	const part2tests: TestCase[] = [{
+		input: `.#.
+..#
+###`,
+		expected: `848`
+	}];
 
 	// Run tests
 	test.beginTests();
