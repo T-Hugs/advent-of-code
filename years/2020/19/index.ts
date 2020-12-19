@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { CartesianProduct } from "js-combinatorics/commonjs/combinatorics";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
@@ -15,17 +16,298 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2020/19/data.txt
 // problem url  : https://adventofcode.com/2020/day/19
 
+function getRuleMatch(message: string, rules: string[], ruleNo: number) {
+	const origMessage = message;
+	const rule = rules[ruleNo];
+	if (/\"([a-z])\"/.test(rule)) {
+		const ruleStr = /\"([a-z])\"/.exec(rule)![1];
+		if (message.startsWith(ruleStr)) {
+			return ruleStr;
+		} else {
+			return null;
+		}
+	} else {
+		const [left, right] = rule
+			.split("|")
+			.map(x => x.trim())
+			.map(x => x.split(" ").map(Number));
+		let leftMatches = true;
+		let matched = "";
+		for (let i = 0; i < left.length; ++i) {
+			const rule = left[i];
+			const match = getRuleMatch(message, rules, rule);
+			if (match) {
+				matched += match;
+				message = message.substr(match.length);
+			} else {
+				leftMatches = false;
+				break;
+			}
+		}
+		if (leftMatches) {
+			return matched;
+		}
+		let rightMatches = true;
+		matched = "";
+		message = origMessage;
+		if (right) {
+			for (let i = 0; i < right.length; ++i) {
+				const rule = right[i];
+				const match = getRuleMatch(message, rules, rule);
+				if (match) {
+					matched += match;
+					message = message.substr(match.length);
+				} else {
+					rightMatches = false;
+					break;
+				}
+			}
+		} else {
+			rightMatches = false;
+		}
+		if (rightMatches) {
+			return matched;
+		}
+		return null;
+	}
+}
+
 async function p2020day19_part1(input: string) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	const messages: string[] = [];
+	const rules: string[] = [];
+
+	const lines = groups[0].split("\n");
+	for (const line of lines) {
+		const split = line.split(":").map(s => s.trim());
+		rules[Number(split[0])] = split[1];
+	}
+	const lines2 = groups[1].split("\n");
+	for (const line of lines2) {
+		messages.push(line);
+	}
+	let count = 0;
+	for (const message of messages) {
+		if (getRuleMatch(message, rules, 0) === message) {
+			count++;
+		}
+	}
+	return count;
+}
+
+function getMatchedValues(rules: string[], ruleNo: number): string[] {
+	const rule = rules[ruleNo];
+	if (/\"([a-z])\"/.test(rule)) {
+		const ruleStr = /\"([a-z])\"/.exec(rule)![1];
+		return [ruleStr];
+	} else {
+		const [left, right] = rule
+			.split("|")
+			.map(x => x.trim())
+			.map(x => x.split(" ").map(Number));
+		let leftValues: string[] = [];
+		let rightValues: string[] = [];
+		for (const r of left) {
+			if (leftValues.length === 0) {
+				leftValues = getMatchedValues(rules, r);
+			} else {
+				const cp = Array.from(new CartesianProduct(leftValues, getMatchedValues(rules, r)));
+				leftValues = cp.map(x => x.join(""));
+			}
+		}
+		if (right) {
+			for (const r of right) {
+				if (rightValues.length === 0) {
+					rightValues = getMatchedValues(rules, r);
+				} else {
+					const cp = Array.from(new CartesianProduct(rightValues, getMatchedValues(rules, r)));
+					rightValues = cp.map(x => x.join(""));
+				}
+			}
+		}
+
+		return [...leftValues, ...rightValues];
+	}
+}
+
+function getRuleMatch2(message: string, rule: string, matchedValues: string[][], ruleNo: number) {
+	const origMessage = message;
+	
+	if (matchedValues[ruleNo]) {
+		for (const v of matchedValues[ruleNo]) {
+			if (message.startsWith(v)) {
+				return v;
+			}
+		}
+		return null;
+	} else {
+		throw new Error("Can't do that.");
+	}
+	// if (/\"([a-z])\"/.test(rule)) {
+	// 	const ruleStr = /\"([a-z])\"/.exec(rule)![1];
+	// 	if (message.startsWith(ruleStr)) {
+	// 		return ruleStr;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// } else {
+	// 	const [left, right] = rule
+	// 		.split("|")
+	// 		.map(x => x.trim())
+	// 		.map(x => x.split(" ").map(Number));
+	// 	let leftMatches = true;
+	// 	let matched = "";
+	// 	for (let i = 0; i < left.length; ++i) {
+	// 		const rule = left[i];
+	// 		const match = getRuleMatch2(message, rules, matchedValues, rule);
+	// 		if (match) {
+	// 			matched += match;
+	// 			message = message.substr(match.length);
+	// 		} else {
+	// 			leftMatches = false;
+	// 			break;
+	// 		}
+	// 	}
+	// 	if (leftMatches) {
+	// 		return matched;
+	// 	}
+	// 	let rightMatches = true;
+	// 	matched = "";
+	// 	message = origMessage;
+	// 	if (right) {
+	// 		for (let i = 0; i < right.length; ++i) {
+	// 			const rule = right[i];
+	// 			const match = getRuleMatch2(message, rules, matchedValues, rule);
+	// 			if (match) {
+	// 				matched += match;
+	// 				message = message.substr(match.length);
+	// 			} else {
+	// 				rightMatches = false;
+	// 				break;
+	// 			}
+	// 		}
+	// 	} else {
+	// 		rightMatches = false;
+	// 	}
+	// 	if (rightMatches) {
+	// 		return matched;
+	// 	}
+	// 	return null;
+	// }
 }
 
 async function p2020day19_part2(input: string) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	const messages: string[] = [];
+	const rules: string[] = [];
+
+	const lines = groups[0].split("\n");
+	for (const line of lines) {
+		const split = line.split(":").map(s => s.trim());
+		rules[Number(split[0])] = split[1];
+	}
+	const lines2 = groups[1].split("\n");
+	for (const line of lines2) {
+		messages.push(line);
+	}
+
+	const matchedValues: string[][] = [];
+	for (let i = 0; i < rules.length; ++i) {
+		if (i === 8 || i === 11) {
+			continue;
+		}
+		if (rules[i]) {
+			matchedValues[i] = getMatchedValues(rules, i);
+		}
+	}
+
+	rules[8] = "42 8 | 42";
+	rules[11] = "42 11 31 | 42 31";
+	let count = 0;
+	for (const message of messages) {
+		for (let i = 1; i < 10; ++i) {
+			for (let j = 1; j < 10; ++j) {
+				rules[0] = _.repeat("42 ", i) + _.repeat("42 ", j) + _.repeat("31 ", j);
+				if (getRuleMatch(message, rules, 0) === message) {
+					count++;
+				}
+			}
+		}
+	}
+	return count;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: "a"
+5: "b"
+
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb`,
+			expected: `2`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `42: 9 14 | 10 1
+9: 14 27 | 1 26
+10: 23 14 | 28 1
+1: "a"
+11: 42 31
+5: 1 14 | 15 1
+19: 14 1 | 14 14
+12: 24 14 | 19 1
+16: 15 1 | 14 14
+31: 14 17 | 1 13
+6: 14 14 | 1 14
+2: 1 24 | 14 4
+0: 8 11
+13: 14 3 | 1 12
+15: 1 | 14
+17: 14 2 | 1 7
+23: 25 1 | 22 14
+28: 16 1
+4: 1 1
+20: 14 14 | 1 15
+3: 5 14 | 16 1
+27: 1 6 | 14 18
+14: "b"
+21: 14 1 | 1 14
+25: 1 1 | 1 14
+22: 14 14
+8: 42
+26: 14 22 | 1 20
+18: 15 15
+7: 14 5 | 1 21
+24: 14 1
+43: 15 1
+
+abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
+bbabbbbaabaabba
+babbbbaabbbbbabbbbbbaabaaabaaa
+aaabbbbbbaaaabaababaabababbabaaabbababababaaa
+bbbbbbbaaaabbbbaaabbabaaa
+bbbababbbbaaaaaaaabbababaaababaabab
+ababaaaaaabaaab
+ababaaaaabbbaba
+baabbaaaabbaaaababbaababb
+abbbbabbbbaaaababbbbbbaaaababb
+aaaaabbaabaaaaababaa
+aaaabbaaaabbaaa
+aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
+babaaabbbaaabaababbaabababaaab
+aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba`,
+			expected: `12`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
@@ -46,10 +328,10 @@ async function run() {
 	const part1Solution = String(await p2020day19_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2020day19_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(19, 2020, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
