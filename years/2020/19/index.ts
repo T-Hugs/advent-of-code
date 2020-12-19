@@ -19,54 +19,40 @@ LOGUTIL.setDebug(DEBUG);
 function getRuleMatch(message: string, rules: string[], ruleNo: number) {
 	const origMessage = message;
 	const rule = rules[ruleNo];
-	if (/\"([a-z])\"/.test(rule)) {
-		const ruleStr = /\"([a-z])\"/.exec(rule)![1];
+	const ruleMatch = /\"([a-z])\"/.exec(rule);
+	if (ruleMatch) {
+		const ruleStr = ruleMatch[1];
 		if (message.startsWith(ruleStr)) {
 			return ruleStr;
 		} else {
 			return null;
 		}
 	} else {
-		const [left, right] = rule
+		const altrations = rule
 			.split("|")
 			.map(x => x.trim())
 			.map(x => x.split(" ").map(Number));
-		let leftMatches = true;
-		let matched = "";
-		for (let i = 0; i < left.length; ++i) {
-			const rule = left[i];
-			const match = getRuleMatch(message, rules, rule);
-			if (match) {
-				matched += match;
-				message = message.substr(match.length);
-			} else {
-				leftMatches = false;
-				break;
+		for (const seq of altrations) {
+			message = origMessage;
+			if (!seq) {
+				return null;
 			}
-		}
-		if (leftMatches) {
-			return matched;
-		}
-		let rightMatches = true;
-		matched = "";
-		message = origMessage;
-		if (right) {
-			for (let i = 0; i < right.length; ++i) {
-				const rule = right[i];
+			let matches = true;
+			let matched = "";
+			for (let i = 0; i < seq.length; ++i) {
+				const rule = seq[i];
 				const match = getRuleMatch(message, rules, rule);
 				if (match) {
 					matched += match;
 					message = message.substr(match.length);
 				} else {
-					rightMatches = false;
+					matches = false;
 					break;
 				}
 			}
-		} else {
-			rightMatches = false;
-		}
-		if (rightMatches) {
-			return matched;
+			if (matches) {
+				return matched;
+			}
 		}
 		return null;
 	}
@@ -95,107 +81,6 @@ async function p2020day19_part1(input: string) {
 	return count;
 }
 
-function getMatchedValues(rules: string[], ruleNo: number): string[] {
-	const rule = rules[ruleNo];
-	if (/\"([a-z])\"/.test(rule)) {
-		const ruleStr = /\"([a-z])\"/.exec(rule)![1];
-		return [ruleStr];
-	} else {
-		const [left, right] = rule
-			.split("|")
-			.map(x => x.trim())
-			.map(x => x.split(" ").map(Number));
-		let leftValues: string[] = [];
-		let rightValues: string[] = [];
-		for (const r of left) {
-			if (leftValues.length === 0) {
-				leftValues = getMatchedValues(rules, r);
-			} else {
-				const cp = Array.from(new CartesianProduct(leftValues, getMatchedValues(rules, r)));
-				leftValues = cp.map(x => x.join(""));
-			}
-		}
-		if (right) {
-			for (const r of right) {
-				if (rightValues.length === 0) {
-					rightValues = getMatchedValues(rules, r);
-				} else {
-					const cp = Array.from(new CartesianProduct(rightValues, getMatchedValues(rules, r)));
-					rightValues = cp.map(x => x.join(""));
-				}
-			}
-		}
-
-		return [...leftValues, ...rightValues];
-	}
-}
-
-function getRuleMatch2(message: string, rule: string, matchedValues: string[][], ruleNo: number) {
-	const origMessage = message;
-	
-	if (matchedValues[ruleNo]) {
-		for (const v of matchedValues[ruleNo]) {
-			if (message.startsWith(v)) {
-				return v;
-			}
-		}
-		return null;
-	} else {
-		throw new Error("Can't do that.");
-	}
-	// if (/\"([a-z])\"/.test(rule)) {
-	// 	const ruleStr = /\"([a-z])\"/.exec(rule)![1];
-	// 	if (message.startsWith(ruleStr)) {
-	// 		return ruleStr;
-	// 	} else {
-	// 		return null;
-	// 	}
-	// } else {
-	// 	const [left, right] = rule
-	// 		.split("|")
-	// 		.map(x => x.trim())
-	// 		.map(x => x.split(" ").map(Number));
-	// 	let leftMatches = true;
-	// 	let matched = "";
-	// 	for (let i = 0; i < left.length; ++i) {
-	// 		const rule = left[i];
-	// 		const match = getRuleMatch2(message, rules, matchedValues, rule);
-	// 		if (match) {
-	// 			matched += match;
-	// 			message = message.substr(match.length);
-	// 		} else {
-	// 			leftMatches = false;
-	// 			break;
-	// 		}
-	// 	}
-	// 	if (leftMatches) {
-	// 		return matched;
-	// 	}
-	// 	let rightMatches = true;
-	// 	matched = "";
-	// 	message = origMessage;
-	// 	if (right) {
-	// 		for (let i = 0; i < right.length; ++i) {
-	// 			const rule = right[i];
-	// 			const match = getRuleMatch2(message, rules, matchedValues, rule);
-	// 			if (match) {
-	// 				matched += match;
-	// 				message = message.substr(match.length);
-	// 			} else {
-	// 				rightMatches = false;
-	// 				break;
-	// 			}
-	// 		}
-	// 	} else {
-	// 		rightMatches = false;
-	// 	}
-	// 	if (rightMatches) {
-	// 		return matched;
-	// 	}
-	// 	return null;
-	// }
-}
-
 async function p2020day19_part2(input: string) {
 	const groups = input.split("\n\n");
 	const messages: string[] = [];
@@ -210,23 +95,11 @@ async function p2020day19_part2(input: string) {
 	for (const line of lines2) {
 		messages.push(line);
 	}
-
-	const matchedValues: string[][] = [];
-	for (let i = 0; i < rules.length; ++i) {
-		if (i === 8 || i === 11) {
-			continue;
-		}
-		if (rules[i]) {
-			matchedValues[i] = getMatchedValues(rules, i);
-		}
-	}
-
-	rules[8] = "42 8 | 42";
-	rules[11] = "42 11 31 | 42 31";
+	const tries = 6;
 	let count = 0;
 	for (const message of messages) {
-		for (let i = 1; i < 10; ++i) {
-			for (let j = 1; j < 10; ++j) {
+		for (let i = 1; i < tries; ++i) {
+			for (let j = 1; j < tries; ++j) {
 				rules[0] = _.repeat("42 ", i) + _.repeat("42 ", j) + _.repeat("31 ", j);
 				if (getRuleMatch(message, rules, 0) === message) {
 					count++;
