@@ -15,27 +15,71 @@ LOGUTIL.setDebug(DEBUG);
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2016/16/data.txt
 // problem url  : https://adventofcode.com/2016/day/16
 
-async function p2016day16_part1(input: string) {
-	return "Not implemented";
+function step(str: string) {
+	const a = str;
+	let b = str;
+	b = str.split("").reverse().join("");
+	b = b.replace(/./g, c => c === "0" ? "1" : "0");
+	return a + "0" + b;
 }
 
-async function p2016day16_part2(input: string) {
-	return "Not implemented";
+function checksum(str: string) {
+	if (str.length % 2 !== 0) {
+		throw new Error("not even");
+	}
+	let result = str;
+	while (result.length % 2 === 0) {
+		let next = "";
+		for (let i = 0; i < result.length; i += 2) {
+			const [c1, c2] = result.substr(i, 2);
+			if (c1 === c2) {
+				next += "1";
+			} else {
+				next += "0";
+			}
+		}
+		result = next;
+	}
+	return result;
+}
+
+async function p2016day16_part1(input: string, ...extraArgs: any[]) {
+	const fillLen: number = extraArgs[0] ?? 272;
+	let data = input;
+	while (data.length < fillLen) {
+		data = step(data);
+	}
+	data = data.substr(0, fillLen);
+	return checksum(data);
+}
+
+async function p2016day16_part2(input: string, ...extraArgs: any[]) {
+	const fillLen: number = extraArgs[0] ?? 35651584;
+	let data = input;
+	while (data.length < fillLen) {
+		data = step(data);
+	}
+	data = data.substr(0, fillLen);
+	return checksum(data);
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `10000`,
+		extraArgs: [20],
+		expected: `01100`
+	}];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
 	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
-		test.logTestResult(testCase, String(await p2016day16_part1(testCase.input)));
+		test.logTestResult(testCase, String(await p2016day16_part1(testCase.input, ...(testCase.extraArgs ?? []))));
 	}
 	test.beginSection();
 	for (const testCase of part2tests) {
-		test.logTestResult(testCase, String(await p2016day16_part2(testCase.input)));
+		test.logTestResult(testCase, String(await p2016day16_part2(testCase.input, ...(testCase.extraArgs ?? []))));
 	}
 	test.endTests();
 
@@ -46,10 +90,10 @@ async function run() {
 	const part1Solution = String(await p2016day16_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day16_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(16, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

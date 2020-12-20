@@ -3,7 +3,7 @@ import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
-import aStar from "a-star";
+import aStar, { AStarOptions } from "a-star";
 import levenshtein from "fast-levenshtein";
 import { performance } from "perf_hooks";
 const { log, logSolution, trace } = LOGUTIL;
@@ -87,7 +87,7 @@ async function p2015day19_part2(input: string) {
 			molecule = line;
 		}
 	}
-	const options = {
+	const options: AStarOptions<string> = {
 		start: molecule,
 		isEnd: (node: string) => node === "e",
 		neighbor: (node: string) => getNeighbors(node, replacements),

@@ -16,15 +16,56 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/15
 
 async function p2016day15_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const discs: number[][] = [];
+	for (const line of lines) {
+		const [discNo, posCount, posAt0] = /#(\d+) has (\d+) positions; at time=0, it is at position (\d+)/
+			.exec(line)!
+			.slice(1)
+			.map(Number);
+		discs.push([posCount, posAt0, discNo]);
+	}
+	outer: for (let t = 0; ; ++t) {
+		for (const disc of discs) {
+			const pos = (disc[1] + (t + disc[2])) % disc[0];
+			if (pos !== 0) {
+				continue outer;
+			}
+		}
+		return t;
+	}
 }
 
 async function p2016day15_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const discs: number[][] = [];
+	for (const line of lines) {
+		const [discNo, posCount, posAt0] = /#(\d+) has (\d+) positions; at time=0, it is at position (\d+)/
+			.exec(line)!
+			.slice(1)
+			.map(Number);
+		discs.push([posCount, posAt0, discNo]);
+	}
+	discs.push([11, 0, discs.length + 1]);
+	outer: for (let t = 0; ; ++t) {
+		for (const disc of discs) {
+			const pos = (disc[1] + (t + disc[2])) % disc[0];
+			if (pos !== 0) {
+				continue outer;
+			}
+		}
+		return t;
+	}
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `Disc #1 has 5 positions; at time=0, it is at position 4.
+Disc #2 has 2 positions; at time=0, it is at position 1.`,
+			expected: `5`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
@@ -46,10 +87,10 @@ async function run() {
 	const part1Solution = String(await p2016day15_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day15_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(15, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
