@@ -16,7 +16,22 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/19
 
 async function p2016day19_part1(input: string) {
-	return "Not implemented";
+	const presentCount = new Array<number>(Number(input)).fill(1);
+
+	for (let i = 0; i < presentCount.length; i = (i + 1) % presentCount.length) {
+		const elf = presentCount[i];
+		if (elf > 0) {
+			let nextPos = (i) % presentCount.length;
+			do {
+				nextPos = (nextPos + 1) % presentCount.length;
+				if (nextPos === i) {
+					return i + 1;
+				}
+			} while (presentCount[nextPos] === 0);
+			presentCount[i] += presentCount[nextPos];
+			presentCount[nextPos] = 0;
+		}
+	}
 }
 
 async function p2016day19_part2(input: string) {
@@ -24,7 +39,10 @@ async function p2016day19_part2(input: string) {
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `5`,
+		expected: `3`
+	}];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
@@ -46,10 +64,10 @@ async function run() {
 	const part1Solution = String(await p2016day19_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2016day19_part2(input));
 	const part2After = performance.now();
-	
+
 	logSolution(19, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

@@ -16,7 +16,18 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2016/day/20
 
 async function p2016day20_part1(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const ranges: [number, number][] = [];
+	for (const line of lines) {
+		const [low, high] = line.split("-").map(Number);
+		ranges.push([low, high]);
+	}
+	for (let i = 0; i < 2 ** 32 - 1; ++i) {
+		if (ranges.some(r => r[0] <= i && r[1] >= i)) {
+			continue;
+		}
+		return i;
+	}
 }
 
 async function p2016day20_part2(input: string) {
@@ -24,7 +35,12 @@ async function p2016day20_part2(input: string) {
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `5-8
+0-2
+4-7`,
+		expected: `3`
+	}];
 	const part2tests: TestCase[] = [];
 
 	// Run tests

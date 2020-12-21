@@ -5,6 +5,7 @@ import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
 import aStar from "a-star";
+import { bfSearch, bfTraverse } from "../../../util/graph";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2016;
@@ -44,16 +45,53 @@ async function p2016day17_part1(input: string) {
 	}).path.slice(-1)[0][2];
 }
 
+type Node = [number, number, string?];
 async function p2016day17_part2(input: string) {
-	return "Not implemented";
+	const target = bfSearch({
+		start: [0, 0, ""],
+		allPaths: true,
+		isEnd: n => n.length === 2,
+		neighbors: (n: Node) => {
+			const neighbors: Node[] = [];
+			const hash = util.md5(input + n[2]).substr(0, 4);
+			if (n[0] > 0 && hexletter.test(hash[0])) {
+				const neighbor: Node = [n[0] - 1, n[1]];
+				if (neighbor[0] !== 3 || neighbor[1] !== 3) {
+					neighbor.push(n[2] + "U");
+				}
+				neighbors.push(neighbor);
+			}
+			if (n[0] < 3 && hexletter.test(hash[1])) {
+				const neighbor: Node = [n[0] + 1, n[1]];
+				if (neighbor[0] !== 3 || neighbor[1] !== 3) {
+					neighbor.push(n[2] + "D");
+				}
+				neighbors.push(neighbor);
+			}
+			if (n[1] > 0 && hexletter.test(hash[2])) {
+				const neighbor: Node = [n[0], n[1] - 1];
+				if (neighbor[0] !== 3 || neighbor[1] !== 3) {
+					neighbor.push(n[2] + "L");
+				}
+				neighbors.push(neighbor);
+			}
+			if (n[1] < 3 && hexletter.test(hash[3])) {
+				const neighbor: Node = [n[0], n[1] + 1];
+				if (neighbor[0] !== 3 || neighbor[1] !== 3) {
+					neighbor.push(n[2] + "R");
+				}
+				neighbors.push(neighbor);
+			}
+			return neighbors;
+		},
+	});
+	if (target) {
+		return Math.max(...target.allPaths.map(p => p.length)) - 1;
+	}
 }
 
 async function run() {
 	const part1tests: TestCase[] = [
-		// {
-		// 	input: `hijkl`,
-		// 	expected: `DDRRRD`,
-		// },
 		{
 			input: `ihgpwlah`,
 			expected: `DDRRRD`,
@@ -67,7 +105,20 @@ async function run() {
 			expected: `DRURDRUDDLLDLUURRDULRLDUUDDDRR`,
 		},
 	];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [
+		{
+			input: `ihgpwlah`,
+			expected: `370`,
+		},
+		{
+			input: `kglvqrro`,
+			expected: `492`,
+		},
+		{
+			input: `ulqzkmiv`,
+			expected: `830`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
