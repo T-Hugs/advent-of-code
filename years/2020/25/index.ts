@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import * as LOGUTIL from "../../../util/log";
 import { performance } from "perf_hooks";
+import { createDelete } from "typescript";
 const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
@@ -16,11 +17,27 @@ LOGUTIL.setDebug(DEBUG);
 // problem url  : https://adventofcode.com/2020/day/25
 
 async function p2020day25_part1(input: string) {
-	return "Not implemented";
-}
+	const [card, door] = input.split("\n").map(Number);
 
-async function p2020day25_part2(input: string) {
-	return "Not implemented";
+	const subject = 7;
+	const mod = 20201227;
+
+	let v = 1;
+	let cardLoop = 0;
+
+	for (let i = 0; ; ++i) {
+		v = util.mod(v * subject, mod);
+		if (v === card) {
+			cardLoop = i + 1;
+			break;
+		}
+	}
+
+	let key = 1;
+	for (let i = 0; i < cardLoop; ++i) {
+		key = util.mod(key * door, mod);
+	}
+	return key;
 }
 
 async function run() {
@@ -33,10 +50,6 @@ async function run() {
 	for (const testCase of part1tests) {
 		test.logTestResult(testCase, String(await p2020day25_part1(testCase.input)));
 	}
-	test.beginSection();
-	for (const testCase of part2tests) {
-		test.logTestResult(testCase, String(await p2020day25_part2(testCase.input)));
-	}
 	test.endTests();
 
 	// Get input and run program while measuring performance
@@ -46,15 +59,10 @@ async function run() {
 	const part1Solution = String(await p2020day25_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
-	const part2Solution = String(await p2020day25_part2(input));
-	const part2After = performance.now();
-	
-	logSolution(25, 2020, part1Solution, part2Solution);
+	logSolution(25, 2020, part1Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
-	log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
 	log();
 }
 

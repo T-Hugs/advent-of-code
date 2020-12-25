@@ -108,27 +108,20 @@ function hash(p1cards: number[], p2cards: number[]) {
 	return p1cards.join(",") + "|" + p2cards.join(",");
 }
 
-const gameMemo: Obj<{ p1cards: number[]; p2cards: number[] }> = {};
-let gamesPlayed = 0;
+const gameMemo: Map<string, { p1cards: number[]; p2cards: number[] }> = new Map();
 function playGame(p1cards: number[], p2cards: number[], depth = 0) {
-	if (gamesPlayed++ % 10000 === 0) {
-		console.log("Games played: " + gamesPlayed);
-	}
 	const gameHash = hash(p1cards, p2cards);
-	if (gameMemo[gameHash]) {
-		return gameMemo[gameHash];
+	if (gameMemo.has(gameHash)) {
+		return gameMemo.get(gameHash)!;
 	}
-	const memo: Obj<boolean> = {};
-	//console.log("Playing game " + depth);
-	let round = 0;
+	const memo: Set<string> = new Set();
 	while (true) {
-		if (depth === 0) console.log(`Round ${++round}`);
 		const roundHash = hash(p1cards, p2cards);
 		let p1win = false;
-		if (memo[roundHash] != undefined) {
+		if (memo.has(roundHash)) {
 			p1win = true;
 		}
-		memo[roundHash] = true;
+		memo.add(roundHash);
 		const p1 = p1cards.shift();
 		const p2 = p2cards.shift();
 		if (p1 == undefined || p2 == undefined) {
@@ -137,9 +130,7 @@ function playGame(p1cards: number[], p2cards: number[], depth = 0) {
 			} else {
 				p1cards.unshift(p1!);
 			}
-			gameMemo[gameHash] = { p1cards, p2cards };
-			//gameMemoSize++;
-			
+			gameMemo.set(gameHash, { p1cards, p2cards });
 			return { p1cards, p2cards };
 		}
 		const p1remain = p1cards.length;
