@@ -35,13 +35,31 @@ async function p2016day19_part1(input: string) {
 }
 
 async function p2016day19_part2(input: string) {
-	return "Not implemented";
-}
+	const presentCount = new Array<number>(Number(input)).fill(1);
+	let elfCount = Number(input);
+	for (let i = 0; i < presentCount.length; i = (i + 1) % presentCount.length) {
+		const elf = presentCount[i];
+		if (elf > 0) {
+			let nextPos = (i + Math.floor(elfCount / 2)) % presentCount.length;
+			do {
+				nextPos = (nextPos + 1) % presentCount.length;
+				if (nextPos === i) {
+					return i + 1;
+				}
+			} while (presentCount[nextPos] === 0);
+			presentCount[i] += presentCount[nextPos];
+			presentCount[nextPos] = 0;
+			elfCount--;
+		}
+	}}
 
 async function run() {
 	const part1tests: TestCase[] = [{
 		input: `5`,
 		expected: `3`
+	},{
+		input: `5`,
+		expected: `2`
 	}];
 	const part2tests: TestCase[] = [];
 
