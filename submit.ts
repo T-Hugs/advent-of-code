@@ -10,6 +10,7 @@ import _ from "lodash";
 const appRoot = getAppRoot();
 const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
 
+/* Potential responses from an answer submission */
 /*That's not the right answer. If you're stuck, make sure you're using the full input data; there are also some general tips on the about page, or you can ask for hints on the subreddit. Please wait one minute before trying again. (You guessed 12345.) [Return to Day 6]*/
 /*That's not the right answer; your answer is too high. If you're stuck, make sure you're using the full input data; there are also some general tips on the about page, or you can ask for hints on the subreddit. Please wait one minute before trying again. (You guessed 78986.) [Return to Day 2]*/
 /*That's not the right answer; your answer is too low. If you're stuck, make sure you're using the full input data; there are also some general tips on the about page, or you can ask for hints on the subreddit. Please wait one minute before trying again. (You guessed 78986.) [Return to Day 2]*/

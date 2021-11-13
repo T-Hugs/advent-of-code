@@ -30,8 +30,32 @@ async function p2016day20_part1(input: string) {
 	}
 }
 
+function countOverlap(range1: [number, number], range2: [number, number]) {
+	const [low1, high1] = range1;
+	const [low2, high2] = range2;
+	return Math.max(0, Math.min(high1 + 1, high2 + 1) - Math.max(low1, low2));
+}
+
 async function p2016day20_part2(input: string) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	const ranges: [number, number][] = [];
+	for (const line of lines) {
+		const [low, high] = line.split("-").map(Number);
+		ranges.push([low, high]);
+	}
+
+	let totalOverlap = 0;
+
+	for (let i = 0; i < ranges.length; ++i) {
+		const range = ranges[i];
+		for (let j = i+1; j < ranges.length; ++j) {
+			totalOverlap += countOverlap(range, ranges[j]);
+		}
+	}
+
+	let totalRangeSize = ranges.reduce((p, c) => p + c[1] - c[0] + 1, 0);
+	totalRangeSize -= totalOverlap;
+	return 2 ** 32 - totalRangeSize;
 }
 
 async function run() {
@@ -41,7 +65,12 @@ async function run() {
 4-7`,
 		expected: `3`
 	}];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [{
+		input: `5-8
+0-2
+4-7`,
+		expected: `2`
+	}];
 
 	// Run tests
 	test.beginTests();
