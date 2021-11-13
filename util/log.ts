@@ -12,6 +12,10 @@ export function setDebug(debug: boolean) {
 	DEBUG = debug;
 }
 
+/**
+ * Logs arbitrary strings and objects
+ * @param params 
+ */
 export function log(...params: any[]) {
 	for (const param of params) {
 		if (typeof param === "object") {
@@ -23,6 +27,10 @@ export function log(...params: any[]) {
 	console.log();
 }
 
+/**
+ * Logs a message only if --debug is passed to run.ts
+ * @param params 
+ */
 export function trace(...params: any[]) {
 	if (DEBUG) {
 		for (const param of params) {
