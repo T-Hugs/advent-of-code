@@ -2,11 +2,10 @@ import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log";
+import { log, logSolution, trace } from "../../../util/log";
 import aStar, { AStarOptions } from "a-star";
 import levenshtein from "fast-levenshtein";
 import { performance } from "perf_hooks";
-const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2015;
 const DAY = 19;

@@ -2,10 +2,9 @@ import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log";
+import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { Grid } from "../../../util/grid";
-const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2016;
 const DAY = 8;

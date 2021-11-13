@@ -1,7 +1,6 @@
 import * as util from "../../../util/util";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log";
-const { log, logSolution, trace } = LOGUTIL;
+import { log, logSolution, trace } from "../../../util/log";
 
 const YEAR = 2016;
 const DAY = 1;

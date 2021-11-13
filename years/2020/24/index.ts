@@ -2,10 +2,9 @@ import _, { flip } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk, { black } from "chalk";
-import * as LOGUTIL from "../../../util/log";
+import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { readBuilderProgram } from "typescript";
-const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2020;
 const DAY = 24;

@@ -2,9 +2,8 @@ import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
-import * as LOGUTIL from "../../../util/log";
+import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
-const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2019;
 const DAY = 6;

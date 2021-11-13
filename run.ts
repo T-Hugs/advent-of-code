@@ -4,29 +4,49 @@ import * as LOGUTIL from "./util/log";
 import chalk from "chalk";
 const { log } = LOGUTIL;
 
-const argStr = process.argv.slice(2).join(" ");
-if (/(\bdebug\b)|((\W|^)-d\b)/.test(argStr)) {
-	LOGUTIL.setDebug(true);
+let debug = false;
+let help = false;
+let year: number = 0;
+let day: number = 0;
+
+const args = process.argv.slice(2);
+for (const arg of args) {
+	if (arg.trim() === "--debug" || arg.trim() === "-d") {
+		debug = true;
+	} else if (arg.trim() === "--help" || arg.trim() === "-h") {
+		help = true;
+	} else {
+		const num = Number(arg);
+		if (Number.isInteger(num)) {
+			if (num >= 1 && num <= 25) {
+				day = num;
+			} else if (num >= 2015 && num < 2100) {
+				year = num;
+			} else {
+				usage();
+			}
+		} else {
+			usage();
+		}
+	}
 }
 
-if (/(\bhelp\b)|((\W|^)-h\b)/.test(argStr)) {
+if ((year === 0 && day !== 0) || (year !== 0 && day === 0)) {
 	usage();
 }
 
+if (help) {
+	usage();
+}
 
-let [year, day] = process.argv.slice(2).map(Number);
+LOGUTIL.setDebug(debug);
 
-if (year === undefined && day === undefined) {
+if (year === 0 && day === 0) {
 	({ year, day } = util.getLatestPuzzleDate());
 }
-
-if (Number.isInteger(year) && year >= 2015 && Number.isInteger(day) && day >= 1 && day <= 25) {
-	const puzzleFile = path.join(util.getDayRoot(day, year), "index");
-	log(chalk`\n== Running puzzle {cyan ${year}.${day}} ==\n`);
-	require(puzzleFile);
-} else {
-	usage();
-}
+const puzzleFile = path.join(util.getDayRoot(day, year), "index");
+log(chalk`\n== Running puzzle {cyan ${year}.${day}}${debug ? " [Debug ON]" : ""} ==\n`);
+require(puzzleFile);
 
 function usage() {
 	log(`
