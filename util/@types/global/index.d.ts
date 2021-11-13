@@ -16,5 +16,5 @@ declare module "a-star" {
 		hash?: (node: T) => string;
 		timeout?: number;
 	}
-	export default function <T>(options: AStarOptions<T>): { status: stringify; path: T[] };
+	export default function <T>(options: AStarOptions<T>): { status: string; path: T[] };
 }

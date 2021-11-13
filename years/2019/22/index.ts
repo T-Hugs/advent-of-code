@@ -44,10 +44,10 @@ async function p2019day22_part1(input: string) {
 		if (line === "deal into new stack") {
 			cardToFollow = linearStack(cardToFollow, deckSize);
 		} else if (line.startsWith("deal")) {
-			const increment = BigInt(line.split(" ").pop()?.trim());
+			const increment = BigInt(line.split(" ").pop()!.trim());
 			cardToFollow = linearDeal(cardToFollow, increment, deckSize);
 		} else {
-			const cutPos = BigInt(line.split(" ").pop()?.trim());
+			const cutPos = BigInt(line.split(" ").pop()!.trim());
 			cardToFollow = linearCut(cardToFollow, cutPos, deckSize);
 		}
 	}
@@ -67,10 +67,10 @@ async function p2019day22_part2(input: string, part1Solution: string) {
 			if (line === "deal into new stack") {
 				i = reverseStack(i, deckSize);
 			} else if (line.startsWith("deal")) {
-				const increment = BigInt(line.split(" ").pop()?.trim());
+				const increment = BigInt(line.split(" ").pop()!.trim());
 				i = reverseDeal(i, increment, deckSize);
 			} else {
-				const cutPos = BigInt(line.split(" ").pop()?.trim());
+				const cutPos = BigInt(line.split(" ").pop()!.trim());
 				i = reverseCut(i, cutPos, deckSize);
 			}
 		}

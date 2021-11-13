@@ -33,7 +33,7 @@ async function p2016day13_part1(input: string) {
 			const down = [node[0], node[1] + 1];
 			const left = [node[0] - 1, node[1]];
 			const right = [node[0] + 1, node[1]];
-			return [up, down, left, right].filter(n => !isWall(n) && node[0] >= 0 && node[1] >= 0);
+			return [up, down, left, right].filter(n => !isWall(n) && node[0] >= 0 && node[1] >= 0) as [number, number][];
 		},
 		heuristic: (node: [number, number]) => Math.abs(node[0] - target[0]) + Math.abs(node[1] - target[1]),
 		distance: () => 1,
@@ -70,7 +70,7 @@ async function p2016day13_part2(input: string) {
 				const down = [node[0], node[1] + 1];
 				const left = [node[0] - 1, node[1]];
 				const right = [node[0] + 1, node[1]];
-				return [up, down, left, right].filter(n => !isWall(n) && node[0] >= 0 && node[1] >= 0);
+				return [up, down, left, right].filter(n => !isWall(n) && node[0] >= 0 && node[1] >= 0) as [number, number][];
 			},
 			heuristic: (node: [number, number]) => Math.abs(node[0] - destination[0]) + Math.abs(node[1] - destination[1]),
 			distance: () => 1,
