@@ -8,8 +8,6 @@ const { log, logSolution, trace } = LOGUTIL;
 
 const YEAR = 2018;
 const DAY = 22;
-const DEBUG = true;
-LOGUTIL.setDebug(DEBUG);
 
 // solution path: /Users/trevorsg/t-hugs/advent-of-code/years/2018/22/index.ts
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2018/22/data.txt

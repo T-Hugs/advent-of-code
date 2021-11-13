@@ -6,8 +6,6 @@ const { log, logGrid, logSolution, trace } = LOGUTIL;
 
 const YEAR = {year};
 const DAY = {day};
-const DEBUG = true;
-LOGUTIL.setDebug(DEBUG);
 
 // solution path: {solution_path}
 // data path    : {data_path}
