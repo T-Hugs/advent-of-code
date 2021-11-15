@@ -1,5 +1,11 @@
 import chalk from "chalk";
 
+let NO_TESTS = false;
+
+export function setNoTests(value: boolean) {
+	NO_TESTS = value;
+}
+
 const grayBar = chalk.gray("║");
 const blueBar = chalk.blueBright("│");
 
@@ -14,6 +20,9 @@ function testLog(...params: any[]) {
 }
 
 export function beginTests(hideTests = false) {
+	if (NO_TESTS) {
+		return;
+	}
 	testIndex = 1;
 	sectionIndex = 1;
 	testsHidden = hideTests;
@@ -27,7 +36,21 @@ export function beginSection(hideSection = false) {
 	if (sectionIndex > 1) {
 		testLog(grayBar + chalk.blueBright(`  └────────────────────────────────────┘`));
 	}
-	testLog(grayBar + chalk.blueBright(`  ┌─────── BEGIN SECTION ${sectionIndex} TESTS ──────┐`));
+	testLog(grayBar + chalk.blueBright(`  ┌─────── PART ${sectionIndex} TESTS ──────┐`));
+	sectionIndex++;
+}
+
+export function endSection() {
+	testLog(grayBar + chalk.blueBright(`  └──────────────────────────────┘`));
+}
+
+export async function section(runner: () => void, hideSection = false) {
+	if (NO_TESTS || hideSection) {
+		return;
+	}
+	testLog(grayBar + chalk.blueBright(`  ┌─────── PART ${sectionIndex} TESTS ──────┐`));
+	await runner();
+	testLog(grayBar + chalk.blueBright(`  └───────────────────────────┘`));
 	sectionIndex++;
 }
 
@@ -50,9 +73,11 @@ export function logTestResult(testCase: TestCase, result: string) {
 }
 
 export function endTests() {
+	if (NO_TESTS) {
+		return;
+	}
 	sectionHidden = false;
 	testIndex = 1;
 	sectionIndex = 1;
-	testLog(grayBar + chalk.blueBright(`  └────────────────────────────────────┘`));
 	testLog(grayBar + chalk.gray("\n╚════════════════ END TESTS ═══════════════╝"));
 }

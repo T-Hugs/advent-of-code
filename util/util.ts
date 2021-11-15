@@ -136,6 +136,14 @@ export function bigIntMod(_a: number | bigint, _n: number | bigint) {
 	return ((a % n) + n) % n;
 }
 
+/**
+ * JavaScript's % operator is the remainder operator rather than the modulus
+ * operator. This function implements modulus, which produces different results
+ * than % for negative values. Use this instead of % for most cases.
+ * @param a 
+ * @param n 
+ * @returns 
+ */
 export function mod(a: number, n: number) {
 	return ((a % n) + n) % n;
 }
@@ -243,6 +251,12 @@ export function powerSet<T>(inputArr: T[], settings: { proper?: boolean; nonEmpt
 	return result;
 }
 
+/**
+ * I don't remember exactly what this does.
+ * @param elems 
+ * @param target 
+ * @param level 
+ */
 // Note: doesn't work great for duplicate values in the input array
 export function* getSumSubsets(elems: number[], target: number, level: number = 0): Generator<number[] | undefined> {
 	const generated: number[][] = [];
@@ -287,6 +301,9 @@ export function* getSumSubsets(elems: number[], target: number, level: number = 
 	}
 }
 
+/**
+ * Returns the count of each unique element in the array
+ */
 export function countUniqueElements(
 	iterable: Iterable<string>
 ): {
@@ -303,6 +320,13 @@ export function countUniqueElements(
 	return result;
 }
 
+/**
+ * For a given array, find the "maximum" element and return its index,
+ * numerical value, and original value.
+ * @param arr 
+ * @param toNumber A function to convert array elements to numbers
+ * @returns 
+ */
 export function max<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 	let maxIndex = -1;
 	let maxValue = Number.MIN_VALUE;
@@ -318,6 +342,13 @@ export function max<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 	return { index: maxIndex, value: maxValue, elem: maxElem! };
 }
 
+/**
+ * For a given array, find the "minimum" element and return its index,
+ * numerical value, and original value.
+ * @param arr 
+ * @param toNumber A function to convert array elements to numbers
+ * @returns 
+ */
 export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 	let minIndex = -1;
 	let minValue = Number.MAX_VALUE;
@@ -333,6 +364,11 @@ export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 	return { index: minIndex, value: minValue, elem: minElem! };
 }
 
+/**
+ * Returns the MD5 digest of the given string as a hexadecimal string.
+ * @param input 
+ * @returns 
+ */
 export function md5(input: string) {
 	const hash = crypto.createHash("md5");
 	hash.update(input);

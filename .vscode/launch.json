@@ -5,18 +5,14 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Example",
+			"name": "Current TS File",
 			"type": "node",
 			"request": "launch",
-			"runtimeExecutable": "node",
-			"runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
-
-			"args": ["${file}"],
-
+			"args": ["${relativeFile}"],
+			"runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+			"sourceMaps": true,
 			"cwd": "${workspaceRoot}",
-			"internalConsoleOptions": "openOnSessionStart",
-			"skipFiles": ["<node_internals>/**", "node_modules/**"],
-			"outputCapture": "std"
+			"protocol": "inspector",
 		}
 	]
 }

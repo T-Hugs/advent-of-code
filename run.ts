@@ -1,11 +1,13 @@
 import * as util from "./util/util";
 import path from "path";
 import * as LOGUTIL from "./util/log";
+import * as TESTUTIL from "./util/test";
 import chalk from "chalk";
 const { log } = LOGUTIL;
 
 let debug = false;
 let help = false;
+let noTests = false;
 let year: number = 0;
 let day: number = 0;
 
@@ -15,6 +17,8 @@ for (const arg of args) {
 		debug = true;
 	} else if (arg.trim() === "--help" || arg.trim() === "-h") {
 		help = true;
+	} else if (arg.trim() === "--no-test" || arg.trim() === "--no-tests" || arg.trim() === "-n") {
+		noTests = true;
 	} else {
 		const num = Number(arg);
 		if (Number.isInteger(num)) {
@@ -40,6 +44,7 @@ if (help) {
 }
 
 LOGUTIL.setDebug(debug);
+TESTUTIL.setNoTests(noTests);
 
 if (year === 0 && day === 0) {
 	({ year, day } = util.getLatestPuzzleDate());
@@ -62,7 +67,9 @@ function usage() {
 	  day: a number between 1 and 25, inclusive
   
 	Options:
-	  --help: Show this help message.
+	  --help, -h: Show this help message.
+	  --debug, -d: Print debug/trace messages.
+	  --no-tests, -n: Don't run tests.
   
 	Examples:
 	  ts-node run.ts

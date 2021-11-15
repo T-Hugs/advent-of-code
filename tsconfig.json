@@ -13,7 +13,9 @@
 		"types": ["global", "node"],
 		"esModuleInterop": true,
 		"skipLibCheck": false,
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"sourceMap": true,
+		"allowJs": true
 	},
 	"include": ["**/*.ts", "**/*.d.ts"]
 }

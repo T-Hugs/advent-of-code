@@ -1,11 +1,11 @@
 import { LocalStorage } from "node-localstorage";
 import { formatTime, getAppRoot, wait } from "./util/util";
 import path from "path";
-import { SolutionObject, solutionLogKey } from "./util/log";
-import fetch from "node-fetch";
-import playwright from "playwright-chromium";
+import { log, SolutionObject, solutionLogKey } from "./util/log";
+import fetch from "cross-fetch";
 import chalk from "chalk";
 import _ from "lodash";
+import { getSessionToken } from "./getToken";
 
 const appRoot = getAppRoot();
 const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
@@ -15,32 +15,6 @@ const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
 /*That's not the right answer; your answer is too high. If you're stuck, make sure you're using the full input data; there are also some general tips on the about page, or you can ask for hints on the subreddit. Please wait one minute before trying again. (You guessed 78986.) [Return to Day 2]*/
 /*That's not the right answer; your answer is too low. If you're stuck, make sure you're using the full input data; there are also some general tips on the about page, or you can ask for hints on the subreddit. Please wait one minute before trying again. (You guessed 78986.) [Return to Day 2]*/
 /*You gave an answer too recently; you have to wait after submitting an answer before trying again. You	have 55s left to wait. <a href="/2016/day/6">[Return to Day 6]</a>*/
-
-async function getNewSessionToken() {
-	const browser = await playwright.chromium.launch({ headless: false });
-	const context = await browser.newContext();
-	const page = await context.newPage();
-	await page.goto("https://adventofcode.com/auth/github");
-	await page.waitForNavigation({ url: /^https:\/\/adventofcode\.com\/$/, timeout: 0 });
-	const cookies = await context.cookies();
-	const sessionCookie = cookies.find(c => c.name === "session" && c.domain.includes("adventofcode.com"));
-	if (!sessionCookie) {
-		throw new Error("Could not acquire session cookie.");
-	}
-	return sessionCookie.value;
-}
-
-async function login(token?: string) {
-	const sessionToken = token ?? (await getNewSessionToken());
-	localStorage.setItem("sessionToken", sessionToken);
-}
-
-async function getSessionToken() {
-	if (!localStorage.getItem("sessionToken")) {
-		await login();
-	}
-	return localStorage.getItem("sessionToken");
-}
 
 function getMsUntilActiveCooldownExpiration(solutionLog: SolutionObject[]) {
 	const expirations = solutionLog.map(solution => {
@@ -61,7 +35,7 @@ async function submit() {
 	const solutionLogStr = localStorage.getItem(solutionLogKey);
 
 	if (solutionLogStr == undefined) {
-		console.log("Could not find solution log!");
+		log("Could not find solution log!");
 		process.exit(1);
 	}
 
@@ -69,7 +43,7 @@ async function submit() {
 	try {
 		solutionLog = JSON.parse(solutionLogStr);
 	} catch {
-		console.log("Could not parse solution log!");
+		log("Could not parse solution log!");
 		process.exit(1);
 	}
 
@@ -86,13 +60,13 @@ async function submit() {
 	}
 
 	if (!mostRecent) {
-		console.log("Could not find any solutions in the log!");
+		log("Could not find any solutions in the log!");
 		process.exit(1);
 	}
 
 	const msTillCooldown = getMsUntilActiveCooldownExpiration(solutionLog);
 	if (msTillCooldown > 0) {
-		console.log(
+		log(
 			`Waiting ${formatTime(msTillCooldown)} until cooldown expiration before automatically submitting. Ctrl+C to abort.`
 		);
 	}
@@ -107,7 +81,7 @@ async function submit() {
 		part = "1";
 		answer = mostRecent.part1;
 	} else {
-		console.log("No solution to submit!");
+		log("No solution to submit!");
 		process.exit(1);
 	}
 
@@ -116,7 +90,7 @@ async function submit() {
 	const sessionToken = await getSessionToken();
 	const uri = `https://adventofcode.com/${mostRecent.problem.year}/day/${mostRecent.problem.day}/answer`;
 
-	console.log(
+	log(
 		`Submitting: Year: ${mostRecent.problem.year}, Day: ${mostRecent.problem.day}, Part: ${part}, Answer: ${answer}`
 	);
 	const result = await fetch(uri, {
@@ -136,13 +110,13 @@ async function submit() {
 		if (responseText.includes("That's not the right answer")) {
 			if (responseText.includes("your answer is too high.")) {
 				mostRecent.submissions.push({ date: new Date().toJSON(), result: "high" });
-				console.log("Wrong! (too high)");
+				log("Wrong! (too high)");
 			} else if (responseText.includes("your answer is too low.")) {
 				mostRecent.submissions.push({ date: new Date().toJSON(), result: "low" });
-				console.log("Wrong! (too low)");
+				log("Wrong! (too low)");
 			} else {
 				mostRecent.submissions.push({ date: new Date().toJSON(), result: "incorrect" });
-				console.log("Wrong answer!");
+				log("Wrong answer!");
 			}
 		} else if (responseText.includes("You gave an answer too recently")) {
 			const waitTime = /You have (.*?) left to wait/.exec(responseText)![1];
@@ -156,18 +130,18 @@ async function submit() {
 				result: "timeout",
 				cooldownFinished: cooldownFinished,
 			});
-			console.log(
+			log(
 				`Cooldown in progress (${waitTime} remaining). Re-submitting now will auto wait for cooldown to expire.`
 			);
 		} else if (responseText.includes("That's the right answer!")) {
 			mostRecent.submissions.push({date: new Date().toJSON(), result: "correct"});
-			console.log(
+			log(
 				chalk.greenBright("Correct! One ") + chalk.yellowBright("GOLD") + chalk.greenBright(" star for you!")
 			);
 		} else {
 			mostRecent.submissions.push({date: new Date().toJSON(), result: "unknown"});
-			console.log("Unrecognized response! See below.\n");
-			console.log(responseText);
+			log("Unrecognized response! See below.\n");
+			log(responseText);
 		}
 		localStorage.setItem(solutionLogKey, JSON.stringify(solutionLog, null, 4));
 	}

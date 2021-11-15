@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch from "cross-fetch";
 import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate, formatTime } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";
@@ -7,13 +7,12 @@ import mkdirp from "mkdirp";
 import chalk from "chalk";
 import * as fs from "fs/promises";
 import { existsSync, mkdir } from "fs";
+import { getSessionToken } from "./getToken";
 
 interface Settings {
 	pristine: boolean;
 	rootPath: string;
 	seed: boolean;
-	sessionToken?: string;
-	storeToken: boolean;
 	suck: boolean;
 	templatePath: string;
 	compareWithPath?: string;
@@ -48,11 +47,6 @@ suck             : Suck in problem data from adventofcode.com.
 --compare-with   : Optional template to compare with to make template
                    updates without destroying any existing solutions.
                    Defaults to {app_root}/compareTemplate.dat.
---token, -t      : Specify your session token for authentication.
-                   Defaults to get it interactively using Chromium.
-                   Plain text value will be saved in .scratch.
---no-store-token : Do not store the token on disk. Also applies to
-                   interactive login. Any existing token will be deleted.
 --pristine       : Overwrite all solution files and data files. Cannot be
                    reversed. You have been warned.
 --wait           : Before sucking any data, wait until the next problem is
@@ -63,7 +57,6 @@ suck             : Suck in problem data from adventofcode.com.
 	process.exit();
 }
 const settings: Settings = {
-	storeToken: true,
 	years: [],
 	suck: false,
 	seed: false,
@@ -80,36 +73,7 @@ const AOC_INPUT_TEMPLATE = "https://adventofcode.com/{year}/day/{day}/input";
 const NUM_DAYS = 25;
 const START_YEAR = 2015;
 
-// @todo de-dup this from submit.ts
-async function getNewSessionToken() {
-	const browser = await playwright.chromium.launch({ headless: false });
-	const context = await browser.newContext();
-	const page = await context.newPage();
-	await page.goto("https://adventofcode.com/auth/github");
-	await page.waitForNavigation({ url: /^https:\/\/adventofcode\.com\/$/, timeout: 0 });
-	const cookies = await context.cookies();
-	const sessionCookie = cookies.find(c => c.name === "session" && c.domain.includes("adventofcode.com"));
-	if (!sessionCookie) {
-		throw new Error("Could not acquire session cookie.");
-	}
-	return sessionCookie.value;
-}
-
-async function login(token?: string) {
-	const sessionToken = token ?? (await getNewSessionToken());
-	if (settings.storeToken) {
-		localStorage.setItem("sessionToken", sessionToken);
-	}
-}
-
-async function getSessionToken() {
-	if (!localStorage.getItem("sessionToken")) {
-		await login();
-	}
-	return localStorage.getItem("sessionToken");
-}
-
-async function getDayData(day: number, year: number, fail = false): Promise<string> {
+async function getDayData(day: number, year: number): Promise<string> {
 	const sessionToken = await getSessionToken();
 	const uri = replaceAll(AOC_INPUT_TEMPLATE, {
 		"{year}": String(year),
@@ -123,12 +87,10 @@ async function getDayData(day: number, year: number, fail = false): Promise<stri
 	if (result.status === 200) {
 		return result.text();
 	} else if (result.status !== 404) {
-		if (!fail) {
-			await login();
-			return getDayData(day, year, true);
-		} else {
-			throw new Error("Did not get a 200 status code requesting data.");
-		}
+		throw new Error(
+			"Did not get a 200 status code requesting data. Did your token expire? Try running `npx ts-node login.ts` again. Error code: " +
+				result.status
+		);
 	} else {
 		throw new Error("Received a 404. Is the puzzle released yet?");
 	}
@@ -222,7 +184,6 @@ function parseArgs() {
 		compareWithIndex >= 0 ? args[compareWithIndex + 1] : path.join(getAppRoot(), "compareTemplate.dat");
 
 	const sessionToken = sessionTokenIndex >= 0 ? args[sessionTokenIndex + 1] : undefined;
-	const storeToken = !args.includes("--no-store-token");
 	const suck = args.includes("suck");
 	const seed = args.includes("seed");
 	const pristine = args.includes("--pristine");
@@ -236,9 +197,7 @@ function parseArgs() {
 	}
 
 	Object.assign(settings, {
-		sessionToken,
 		years,
-		storeToken,
 		suck,
 		seed,
 		rootPath,
@@ -246,11 +205,7 @@ function parseArgs() {
 		pristine,
 		compareWithPath,
 		wait,
-	} as Settings);
-
-	if (!settings.storeToken) {
-		localStorage.removeItem("sessionToken");
-	}
+	});
 }
 
 async function seed(year: number) {
@@ -286,11 +241,11 @@ async function run() {
 
 	if (settings.suck) {
 		if (settings.wait) {
-			const latestPuzzleAsOfFiveMinutesFromNow = getLatestPuzzleDate(new Date(new Date().getTime() + 86400000));
+			const latestPuzzleAsOfTomorrow = getLatestPuzzleDate(new Date(Date.now() + 86400000));
 			const actualLatestPuzzle = getLatestPuzzleDate();
 			if (
-				latestPuzzleAsOfFiveMinutesFromNow.day === actualLatestPuzzle.day &&
-				latestPuzzleAsOfFiveMinutesFromNow.year === actualLatestPuzzle.year
+				latestPuzzleAsOfTomorrow.day === actualLatestPuzzle.day &&
+				latestPuzzleAsOfTomorrow.year === actualLatestPuzzle.year
 			) {
 				console.log(
 					chalk.redBright("Error: ") +
@@ -298,8 +253,8 @@ async function run() {
 				);
 			} else {
 				const releaseTime = getReleaseTime(
-					latestPuzzleAsOfFiveMinutesFromNow.day,
-					latestPuzzleAsOfFiveMinutesFromNow.year
+					latestPuzzleAsOfTomorrow.day,
+					latestPuzzleAsOfTomorrow.year
 				);
 				// Wait an extra few seconds just in case the system clock is off by a bit.
 				// The player will need to read the problem anyway.
@@ -307,7 +262,10 @@ async function run() {
 
 				console.log(
 					chalk.yellowBright("\n=== WAITING === \n") +
-						`Waiting ${formatTime(toWait, 2)} for next puzzle release before continuing (Ctrl+C to cancel).\n`
+						`Waiting ${formatTime(
+							toWait,
+							2
+						)} for next puzzle release before continuing (Ctrl+C to cancel).\n`
 				);
 				await wait(toWait);
 			}

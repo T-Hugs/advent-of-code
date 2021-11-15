@@ -27,13 +27,37 @@ async function p2016day20_part1(input: string) {
 	}
 }
 
-function countOverlap(range1: [number, number], range2: [number, number]) {
-	const [low1, high1] = range1;
-	const [low2, high2] = range2;
-	return Math.max(0, Math.min(high1 + 1, high2 + 1) - Math.max(low1, low2));
+function normalizeRanges(ranges: [number, number][]) {
+	let next = ranges.slice();
+	while (true) {
+		const normalized: [number, number][] = [];
+		for (const range of next) {
+			let expanded = false;
+			for (const normalizedRange of normalized) {
+				const overlaps =
+					(range[0] >= normalizedRange[0] - 1 && range[0] <= normalizedRange[1] + 1) ||
+					(range[1] >= normalizedRange[0] - 1 && range[1] <= normalizedRange[1] + 1);
+				if (overlaps) {
+					normalizedRange[0] = Math.min(normalizedRange[0], range[0]);
+					normalizedRange[1] = Math.max(normalizedRange[1], range[1]);
+					expanded = true;
+				}
+			}
+			if (!expanded) {
+				normalized.push(range);
+			}
+		}
+		const updated = next.length !== normalized.length;
+		next = normalized;
+		next.sort((a, b) => a[0] - b[0]);
+		if (!updated) {
+			break;
+		}
+	}
+	return next;
 }
 
-async function p2016day20_part2(input: string) {
+async function p2016day20_part2(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	const ranges: [number, number][] = [];
 	for (const line of lines) {
@@ -41,44 +65,91 @@ async function p2016day20_part2(input: string) {
 		ranges.push([low, high]);
 	}
 
-	let totalOverlap = 0;
+	const normalized = normalizeRanges(ranges);
+	normalized.sort((a, b) => a[0] - b[0]);
 
-	for (let i = 0; i < ranges.length; ++i) {
-		const range = ranges[i];
-		for (let j = i+1; j < ranges.length; ++j) {
-			totalOverlap += countOverlap(range, ranges[j]);
-		}
-	}
-
-	let totalRangeSize = ranges.reduce((p, c) => p + c[1] - c[0] + 1, 0);
-	totalRangeSize -= totalOverlap;
-	return 2 ** 32 - totalRangeSize;
+	let totalRangeSize = normalized.reduce((p, c) => p + c[1] - c[0] + 1, 0);
+	return params[0] - totalRangeSize + 1;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [{
-		input: `5-8
+	const part1tests: TestCase[] = [
+		{
+			input: `5-8
 0-2
 4-7`,
-		expected: `3`
-	}];
-	const part2tests: TestCase[] = [{
-		input: `5-8
+			expected: `3`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `5-8
 0-2
 4-7`,
-		expected: `2`
-	}];
+			extraArgs: [9],
+			expected: `2`,
+		},
+		{
+			input: `5-8
+0-2
+4-7
+0-9`,
+			extraArgs: [9],
+			expected: `0`,
+		},
+		{
+			input: `1-2
+3-4
+5-6`,
+			extraArgs: [9],
+			expected: `5`,
+		},
+		{
+			input: `5-6
+3-4
+1-2`,
+			extraArgs: [9],
+			expected: `4`,
+		},
+		{
+			input: `5-6
+1-2
+3-4`,
+			extraArgs: [9],
+			expected: `4`,
+		},
+		{
+			input: `0-5
+6-9`,
+			extraArgs: [9],
+			expected: `0`,
+		},
+		{
+			input: `1-5
+3-4`,
+			extraArgs: [9],
+			expected: `5`,
+		},
+		{
+			input: `1-5
+3-4`,
+			extraArgs: [9],
+			expected: `5`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
-	test.beginSection();
-	for (const testCase of part1tests) {
-		test.logTestResult(testCase, String(await p2016day20_part1(testCase.input)));
-	}
-	test.beginSection();
-	for (const testCase of part2tests) {
-		test.logTestResult(testCase, String(await p2016day20_part2(testCase.input)));
-	}
+	await test.section(async () => {
+		for (const testCase of part1tests) {
+			test.logTestResult(testCase, String(await p2016day20_part1(testCase.input)));
+		}
+	});
+	await test.section(async () => {
+		for (const testCase of part2tests) {
+			test.logTestResult(testCase, String(await p2016day20_part2(testCase.input, ...(testCase.extraArgs ?? []))));
+		}
+	});
 	test.endTests();
 
 	// Get input and run program while measuring performance
@@ -88,10 +159,10 @@ async function run() {
 	const part1Solution = String(await p2016day20_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
-	const part2Solution = String(await p2016day20_part2(input));
+	const part2Before = performance.now();
+	const part2Solution = String(await p2016day20_part2(input, 2 ** 32 - 1));
 	const part2After = performance.now();
-	
+
 	logSolution(20, 2016, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));

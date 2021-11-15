@@ -18,7 +18,7 @@
 	"Test Case": {
 		"scope": "typescript",
 		"prefix": "test",
-		"body": ["{", "\tinput: `$1`,", "\texpected: ``", "}"],
+		"body": ["{", "\tinput: `$1`,", "\textraArgs: [],", "\texpected: ``", "}"],
 		"description": "Insert test into tests array"
 	},
 	"Loop input lines": {
