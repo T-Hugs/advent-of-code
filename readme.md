@@ -64,6 +64,10 @@ This framework includes a number of useful tools for interfacing with Advent of 
   * `--no-tests` - turns off test execution (rarely needed unless your test cases are slow or causing other problems).
   * `--help` - prints help information.
 
+### Debugging
+
+If you are using VS Code, a launch configuration is included that enables breakpoint-based debugging. Just add a breakpoint and press F5 to start debugging the current file.
+
 ### Test cases
 
 This package includes a small test framework to help you validate your solutions. The default TypeScript template runs all test cases by default.
