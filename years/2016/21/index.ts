@@ -12,132 +12,124 @@ const DAY = 21;
 // data path    : /Users/trevorsg/t-hugs/advent-of-code/years/2016/21/data.txt
 // problem url  : https://adventofcode.com/2016/day/21
 
-async function p2016day21_part1(input: string) {
-	const lines = input.split("\n");
-	let list = "abcdefgh".split("");
-	for (const line of lines) {
-		const words = line.split(" ");
-		const op = words[0];
-		if (op === "rotate") {
-			const second = words[1];
-			let numSteps = -1;
-			let dir = 1;
-			if (second === "based") {
-				const letter = words[6];
-				numSteps = list.indexOf(letter) + 1;
-				if (numSteps >= 5) {
-					numSteps += 1;
-				}
-			} else {
-				numSteps = Number(words[2]);
-				dir = second === "left" ? -1 : 1;
-			}
-			// abcdefg ==> 3 => efgabcd
-			// abcdefg <== 3 => defgabc
-			const breakpoint = util.mod(numSteps, list.length) * dir;
-			const firstPart = list.slice(-breakpoint);
-			const secondPart = list.slice(0, -breakpoint);
-			list = [...firstPart, ...secondPart];
-		} else if (op === "swap") {
-			if (words[1] === "position") {
-				const firstPos = Number(words[2]);
-				const secondPos = Number(words[5]);
-				[list[firstPos], list[secondPos]] = [list[secondPos], list[firstPos]];
-			} else {
-				const firstLetter = words[2];
-				const secondLetter = words[5];
-				const firstLetterIndex = list.indexOf(firstLetter);
-				const secondLetterIndex = list.indexOf(secondLetter);
-				[list[firstLetterIndex], list[secondLetterIndex]] = [list[secondLetterIndex], list[firstLetterIndex]];
-			}
-		} else if (op === "reverse") {
-			const firstPos = Number(words[2]);
-			const secondPos = Number(words[4]);
-			const sublist = list.slice(firstPos, secondPos + 1);
-			list.splice(firstPos, sublist.length, ...sublist.reverse());
-		} else if (op === "move") {
-			const firstPos = Number(words[2]);
-			const secondPos = Number(words[5]);
-			const removed = list[firstPos];
-			list.splice(firstPos, 1);
-			list.splice(secondPos, 0, removed);
-		} else {
-			throw new Error("Unknown operation.");
-		}
-	}
-
-	return list.join("");
+function swapIndex(word: string, firstIndex: number, secondIndex: number, undo: boolean = false): string {
+	const wordA = word.split("");
+	const [firstLetter, secondLetter] = [wordA[firstIndex], wordA[secondIndex]];
+	wordA[firstIndex] = secondLetter;
+	wordA[secondIndex] = firstLetter;
+	return wordA.join("");
 }
 
-function getReverseMap(count: number): { [key: number]: number } {
-	if (count === 5) {
-		return { 1: 0, 3: 1, 0: 4, 2: 3, 4: 2 };
-	} else if (count === 8) {
-		return { 1: 0, 3: 1, 5: 2, 7: 3, 2: 4, 4: 5, 6: 6, 0: 7 };
+function swapLetter(word: string, firstLetter: string, secondLetter: string, undo: boolean = false): string {
+	const newWord = new Array(word.length);
+	for (let i = 0; i < word.length; i++) {
+		if (word[i] === firstLetter) {
+			newWord[i] = secondLetter;
+		} else if (word[i] === secondLetter) {
+			newWord[i] = firstLetter;
+		} else {
+			newWord[i] = word[i];
+		}
+	}
+	return newWord.join("");
+}
+
+function reverse(word: string, start: number, end: number, undo: boolean = false): string {
+	const startPart = word.substr(0, start);
+	const endPart = word.substr(end + 1);
+	const middlePart = word.substr(start, end - start + 1);
+
+	return startPart + middlePart.split("").reverse().join("") + endPart;
+}
+
+function moveLetter(word: string, from: number, to: number, undo: boolean = false): string {
+	if (undo) {
+		[from, to] = [to, from];
+	}
+	const wordA = word.split("");
+	const letter = wordA[from];
+	wordA.splice(from, 1);
+	wordA.splice(to, 0, letter);
+	return wordA.join("");
+}
+
+function rotateRight(word: string, count: number, undo: boolean = false): string {
+	if (undo) {
+		count *= -1;
+	}
+	count = util.mod(count, word.length);
+	const firstPart = word.slice(-count);
+	const secondPart = word.slice(0, -count);
+	return firstPart + secondPart;
+}
+
+function rotateLeft(word: string, count: number, undo: boolean = false): string {
+	return rotateRight(word, -count, undo);
+}
+
+function rotateLetter(word: string, letter: string, undo: boolean = false): string {
+	if (!undo) {
+		const index = word.indexOf(letter);
+		const count = 1 + index + (index >= 4 ? 1 : 0);
+		return rotateRight(word, count, undo);
 	} else {
-		throw new Error("Don't know the reverse map.");
-	}
-}
-// 01234 => 0:1, 1:3, 2:0, 3:2, 4:0
-// 01234567 => 0:1, 1:3, 2:5, 3:7, 4:2, 5:4, 6:6, 7:0 (less than 4)
-// 01234567 => 0:2, 1:4, 2:6, 3:0, 4:1, 5:3, 6:5, 7:7
-async function p2016day21_part2(input: string, ...extraArgs: any[]) {
-	const startStr: string = extraArgs[0] ?? "fbgdceah";
-	const reverseMap = getReverseMap(startStr.length);
-	const lines = input.split("\n").reverse();
-	let list = startStr.split("");
-	for (const line of lines) {
-		const words = line.split(" ");
-		const op = words[0];
-		if (op === "rotate") {
-			const second = words[1];
-			let numSteps = -1;
-			let dir = 1;
-			let letter = undefined;
-			if (second === "based") {
-				letter = words[6];
-				numSteps = reverseMap[list.indexOf(letter)];
-			} else {
-				numSteps = Number(words[2]);
-				dir = second === "left" ? -1 : 1;
+		let count = 1;
+		while (true) {
+			const leftRotated = rotateLeft(word, count);
+			if (rotateLetter(leftRotated, letter) === word) {
+				return leftRotated;
 			}
-			dir *= -1;
-			// abcdefg ==> 3 => efgabcd
-			// abcdefg <== 3 => defgabc
-
-			const breakpoint = util.mod(numSteps, list.length) * dir;
-			const firstPart = list.slice(-breakpoint);
-			const secondPart = list.slice(0, -breakpoint);
-			list = [...firstPart, ...secondPart];
-		} else if (op === "swap") {
-			if (words[1] === "position") {
-				const firstPos = Number(words[2]);
-				const secondPos = Number(words[5]);
-				[list[firstPos], list[secondPos]] = [list[secondPos], list[firstPos]];
-			} else {
-				const firstLetter = words[2];
-				const secondLetter = words[5];
-				const firstLetterIndex = list.indexOf(firstLetter);
-				const secondLetterIndex = list.indexOf(secondLetter);
-				[list[firstLetterIndex], list[secondLetterIndex]] = [list[secondLetterIndex], list[firstLetterIndex]];
-			}
-		} else if (op === "reverse") {
-			const firstPos = Number(words[2]);
-			const secondPos = Number(words[4]);
-			const sublist = list.slice(firstPos, secondPos + 1);
-			list.splice(firstPos, sublist.length, ...sublist.reverse());
-		} else if (op === "move") {
-			const firstPos = Number(words[5]);
-			const secondPos = Number(words[2]);
-			const removed = list[firstPos];
-			list.splice(firstPos, 1);
-			list.splice(secondPos, 0, removed);
-		} else {
-			throw new Error("Unknown operation.");
+			count++;
 		}
 	}
+}
 
-	return list.join("");
+function handleInstruction(word: string, instruction: string, undo: boolean = false): string {
+	const instructionWords = instruction.split(" ");
+	if (instructionWords[0] === "swap" && instructionWords[1] === "position") {
+		return swapIndex(word, parseInt(instructionWords[2], 10), parseInt(instructionWords[5], 10), undo);
+	}
+	if (instructionWords[0] === "swap" && instructionWords[1] === "letter") {
+		return swapLetter(word, instructionWords[2], instructionWords[5], undo);
+	}
+	if (instructionWords[0] === "rotate" && instructionWords[1] === "left") {
+		return rotateLeft(word, parseInt(instructionWords[2], 10), undo);
+	}
+	if (instructionWords[0] === "rotate" && instructionWords[1] === "right") {
+		return rotateRight(word, parseInt(instructionWords[2], 10), undo);
+	}
+	if (instructionWords[0] === "rotate" && instructionWords[1] === "based") {
+		return rotateLetter(word, instructionWords[6], undo);
+	}
+	if (instructionWords[0] === "reverse") {
+		return reverse(word, parseInt(instructionWords[2], 10), parseInt(instructionWords[4], 10), undo);
+	}
+	if (instructionWords[0] === "move") {
+		return moveLetter(word, parseInt(instructionWords[2], 10), parseInt(instructionWords[5], 10), undo);
+	}
+	throw new Error("Unknown instruction: " + instruction);
+}
+
+async function p2016day21_part1(input: string, ...extraArgs: any[]) {
+	const lines = input.split(/\r?\n/);
+
+	let pw = extraArgs[0];
+	for (const line of lines) {
+		pw = handleInstruction(pw, line);
+	}
+	return pw;
+}
+
+async function p2016day21_part2(input: string, ...extraArgs: any[]) {
+	const startStr = extraArgs[0] as string;
+	const lines = input.split(/\r?\n/);
+	const reversedLines = lines.slice().reverse();
+
+	let pw = startStr;
+	for (const line of reversedLines) {
+		pw = handleInstruction(pw, line, true);
+	}
+	return pw;
 }
 
 async function run() {
@@ -151,6 +143,7 @@ move position 1 to position 4
 move position 3 to position 0
 rotate based on position of letter b
 rotate based on position of letter d`,
+			extraArgs: ["abcde"],
 			expected: `decab`,
 		},
 	];
@@ -277,7 +270,7 @@ reverse positions 6 through 7`,
 	test.beginTests();
 	test.beginSection();
 	for (const testCase of part1tests) {
-		test.logTestResult(testCase, String(await p2016day21_part1(testCase.input)));
+		test.logTestResult(testCase, String(await p2016day21_part1(testCase.input, ...(testCase.extraArgs ?? []))));
 	}
 	test.beginSection();
 	for (const testCase of part2tests) {
@@ -289,11 +282,11 @@ reverse positions 6 through 7`,
 	const input = await util.getInput(DAY, YEAR);
 
 	const part1Before = performance.now();
-	const part1Solution = String(await p2016day21_part1(input));
+	const part1Solution = String(await p2016day21_part1(input, "abcdefgh"));
 	const part1After = performance.now();
 
 	const part2Before = performance.now();
-	const part2Solution = String(await p2016day21_part2(input));
+	const part2Solution = String(await p2016day21_part2(input, "fbgdceah"));
 	const part2After = performance.now();
 
 	logSolution(21, 2016, part1Solution, part2Solution);
