@@ -275,7 +275,7 @@ async function run() {
 				const day = i + 1;
 				const isDone = await suckDay(day, year);
 				if (isDone) {
-					console.log(`Finished sucking year ${year} after day: ${day}.`);
+					console.log(`Finished sucking year ${year} after day: ${day - 1}.`);
 					return;
 				}
 

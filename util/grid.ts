@@ -199,11 +199,13 @@ export class Grid {
 	 * @param fillWith Character to fill the grid with. Defaults to a space.
 	 */
 	public initBlankGrid(fillWith: string | undefined) {
+		const sigil = fillWith ?? " ";
+		this.ensureSigilRegistered(sigil);
 		this.grid = [];
 		for (const i of _.range(this.numRows)) {
 			this.grid.push([]);
 			for (const j of _.range(this.numCols)) {
-				this.grid[i][j] = fillWith ?? " ";
+				this.grid[i][j] = sigil;
 			}
 		}
 	}
@@ -407,6 +409,45 @@ export class Grid {
 			}
 		}
 		return subgrid;
+	}
+
+	public rotate(count = 1, direction: "CW" | "CCW" = "CW") {
+		const rotateCount = (direction === "CCW" ? count * 3 : count) % 4;
+		if (rotateCount === 0) {
+			return this.copyGrid();
+		}
+		const keepDimensions = rotateCount % 2 === 0;
+		const newGrid = new Grid({
+			rowCount: keepDimensions ? this.rowCount : this.colCount,
+			colCount: keepDimensions ? this.colCount : this.rowCount,
+		});
+		for (let i = 0; i < this.rowCount; ++i) {
+			for (let j = 0; j < this.colCount; ++j) {
+				if (rotateCount === 1) {
+					newGrid.setCell([j, this.rowCount - i - 1], this.getValue([i, j]));
+				} else if (rotateCount === 2) {
+					newGrid.setCell([this.rowCount - i - 1, this.colCount - j - 1], this.getValue([i, j]));
+				} else if (rotateCount === 3) {
+					newGrid.setCell([this.colCount - j - 1, i], this.getValue([i, j]));
+				}
+			}
+		}
+		return newGrid;
+	}
+
+	public flip(direction: "horizontal" | "vertical" | "both") {
+		const newGrid = new Grid({
+			rowCount: this.rowCount,
+			colCount: this.colCount,
+		});
+		const flipH = direction === "horizontal" || direction === "both";
+		const flipV = direction === "vertical" || direction === "both";
+		for (let i = 0; i < this.rowCount; ++i) {
+			for (let j = 0; j < this.colCount; ++j) {
+				newGrid.setCell([flipV ? this.rowCount - i - 1 : i, flipH ? this.colCount - j - 1 : j], this.getValue([i, j]));
+			}
+		}
+		return newGrid;
 	}
 
 	/**
@@ -780,6 +821,24 @@ if (require.main === module) {
 		srcStartRow: Math.floor(g.rowCount / 2),
 	});
 	botHalf1.log();
+
+	const toRotate = new Grid({serialized: `1234
+5678`});
+	toRotate.log(false);
+	const rotate1 = toRotate.rotate(1);
+	rotate1.log(false);
+	const rotate2 = rotate1.rotate(1);
+	rotate2.log(false);
+	const rotate3 = rotate2.rotate(1);
+	rotate3.log(false);
+	const rotate4 = rotate3.rotate(1);
+	rotate4.log(false);
+	const hFlip = rotate4.flip("horizontal");
+	hFlip.log(false);
+	const vFlip = rotate4.flip("vertical");
+	vFlip.log(false);
+	const bothFlip = rotate4.flip("both");
+	bothFlip.log(false);
 
 	function conway(iterations: number = 100, rows: number = 30, cols: number = 50) {
 		const g = new Grid({ rowCount: rows, colCount: cols, fillWith: "." });
