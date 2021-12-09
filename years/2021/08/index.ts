@@ -16,26 +16,15 @@ async function p2021day8_part1(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	let count = 0;
 	for (const line of lines) {
-		const [first, second] = line.split(" | ");
+		const [_, second] = line.split(" | ");
 		const rightWords = second.split(" ");
 		for (const word of rightWords) {
-			if (word.length === 2 || word.length === 4 || word.length === 3 || word.length === 7) {
+			if ([2, 4, 3, 7].includes(word.length)) {
 				count++;
 			}
 		}
 	}
 	return count;
-}
-
-function sameLetters(str1: string, str2: string): boolean {
-	const sameLength = str1.length === str2.length;
-	const str1set = new Set(str1.split(""));
-	for (const letter of str2) {
-		if (!str1set.has(letter)) {
-			return false;
-		}
-	}
-	return sameLength;
 }
 
 function setEquals(set1: Set<any>, set2: Set<any>) {
@@ -109,8 +98,8 @@ function getMapping(digits: string[]) {
 	}
 
 	for (const d of canBe069) {
-		const intersect4 = _.intersection(d.split(""), Array.from(numberMap[4]))
-		const intersect1 = _.intersection(d.split(""), Array.from(numberMap[1]))
+		const intersect4 = _.intersection(d.split(""), Array.from(numberMap[4]));
+		const intersect1 = _.intersection(d.split(""), Array.from(numberMap[1]));
 		if (intersect4.length === 4) {
 			for (const s of d) {
 				numberMap[9].add(s);
@@ -153,12 +142,14 @@ async function p2021day8_part2(input: string, ...params: any[]) {
 
 async function run() {
 	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [{
-		input: `acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf`,
-		extraArgs: [],
-		expected: `5353`
-	},{
-		input: `be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+	const part2tests: TestCase[] = [
+		{
+			input: `acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf`,
+			extraArgs: [],
+			expected: `5353`,
+		},
+		{
+			input: `be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
 edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
 fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
 fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
@@ -168,9 +159,10 @@ dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbc
 bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
 egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
 gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce`,
-		extraArgs: [],
-		expected: `61229`
-	}];
+			extraArgs: [],
+			expected: `61229`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
@@ -193,7 +185,7 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
 	const part1Solution = String(await p2021day8_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2021day8_part2(input));
 	const part2After = performance.now();
 
