@@ -12,17 +12,113 @@ const DAY = 10;
 // data path    : C:\Users\trgau.NORTHAMERICA\dev\t-hugs\advent-of-code\years\2021\10\data.txt
 // problem url  : https://adventofcode.com/2021/day/10
 
+const pointValues: Obj<number> = {
+	")": 3,
+	"]": 57,
+	"}": 1197,
+	">": 25137,
+};
+
+const pairs: Obj<string> = {
+	"(": ")",
+	"[": "]",
+	"{": "}",
+	"<": ">",
+};
+const opens = Object.keys(pairs);
+const closes = Object.values(pairs);
+
+function getScore(line: string) {
+	const stack: string[] = [];
+	for (const char of line) {
+		if (opens.includes(char)) {
+			stack.push(char);
+		} else if (closes.includes(char)) {
+			const mustBe = pairs[stack.pop()!];
+			if (char !== mustBe) {
+				return pointValues[char];
+			}
+		}
+	}
+	return 0;
+}
+
 async function p2021day10_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let score = 0;
+	for (const line of lines) {
+		score += getScore(line);
+	}
+	return score;
+}
+
+const acPointValues: Obj<number> = {
+	")": 1,
+	"]": 2,
+	"}": 3,
+	">": 4,
+};
+
+function getACScore(line: string) {
+	const stack: string[] = [];
+	for (const char of line) {
+		if (opens.includes(char)) {
+			stack.push(char);
+		} else if (closes.includes(char)) {
+			stack.pop();
+		}
+	}
+	let score = 0;
+	stack.reverse();
+	for (const char of stack) {
+		score *= 5;
+		score += acPointValues[pairs[char]];
+	}
+	return score;
 }
 
 async function p2021day10_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let scores: number[] = [];
+	for (const line of lines) {
+		const syntaxScore = getScore(line);
+		if (syntaxScore === 0) {
+			scores.push(getACScore(line))
+		}
+	}
+	scores.sort((a, b) => a - b);
+	return scores[Math.floor(scores.length / 2)];
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `[({(<(())[]>[[{[]{<()<>>
+[(()[<>])]({[<{<<[]>>(
+{([(<{}[<>[]}>{[]{[(<()>
+(((({<>}<{<{<>}{[]{[]{}
+[[<[([]))<([[{}[[()]]]
+[{[{({}]{}}([{[{{{}}([]
+{<[[]]>}<{[{[{[]{()[[[]
+[<(<(<(<{}))><([]([]()
+<{([([[(<>()){}]>(<<{{
+<{([{{}}[<[[[<>{}]]]>[]]`,
+		extraArgs: [],
+		expected: `26397`
+	}];
+	const part2tests: TestCase[] = [{
+		input: `[({(<(())[]>[[{[]{<()<>>
+[(()[<>])]({[<{<<[]>>(
+{([(<{}[<>[]}>{[]{[(<()>
+(((({<>}<{<{<>}{[]{[]{}
+[[<[([]))<([[{}[[()]]]
+[{[{({}]{}}([{[{{{}}([]
+{<[[]]>}<{[{[{[]{()[[[]
+[<(<(<(<{}))><([]([]()
+<{([([[(<>()){}]>(<<{{
+<{([{{}}[<[[[<>{}]]]>[]]`,
+		extraArgs: [],
+		expected: `288957`
+	}];
 
 	// Run tests
 	test.beginTests();
@@ -45,7 +141,7 @@ async function run() {
 	const part1Solution = String(await p2021day10_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2021day10_part2(input));
 	const part2After = performance.now();
 
