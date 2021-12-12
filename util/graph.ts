@@ -1,4 +1,3 @@
-
 export interface TopoSortOptions<T> {
 	/**
 	 * Node to start on. @todo support multiple starting nodes.
@@ -70,6 +69,8 @@ export interface BFTraverseOptions<T> {
 	 * graph to be acyclic.
 	 */
 	allPaths?: boolean;
+
+	getParents?: (node: T, visited: Set<T>) => Set<T>;
 }
 /**
  * Stores the path to a single node. If allPaths was enabled, also
@@ -96,29 +97,28 @@ export interface BFTraverseResult<T> {
  * Returns a generator that traverses a graph lazily,
  * generating each discoverable node and the shortest
  * path to that node
- * @param options 
+ * @param options
  */
 export function* bfTraverse<TNode>(options: BFTraverseOptions<TNode>): Generator<BFTraverseResult<TNode>> {
-	function reconstructAllPaths(node: TNode | undefined): TNode[][] {
+	function reconstructAllPaths(node: TNode | undefined, visited: Set<TNode>): TNode[][] {
 		if (node == undefined) {
 			return [];
 		}
-		const parents = allParents.get(node) ?? [];
+		const parents = Array.from(options.getParents?.(node, visited) ?? []) ?? allParents.get(node) ?? [];
 		if (parents.length === 0) {
 			return [[node]];
 		} else {
-			const parents = allParents.get(node) ?? [];
 			const newPaths: TNode[][] = [];
 			for (const parent of parents) {
-				const parentPaths = reconstructAllPaths(parent);
+				const parentPaths = reconstructAllPaths(parent, visited);
 				newPaths.push(...parentPaths.map(pp => pp.concat([node])));
 			}
 			return newPaths;
 		}
 	}
-	function reconstructPath(node: TNode) {
+	function reconstructPath(node: TNode, visited: Set<TNode>) {
 		let nextNode: TNode | undefined = node;
-		const allPaths = options.allPaths ? reconstructAllPaths(node) : [];
+		const allPaths = options.allPaths ? reconstructAllPaths(node, visited) : [];
 		const shortestPath: TNode[] = [];
 		while (nextNode != undefined) {
 			shortestPath.unshift(nextNode);
@@ -132,17 +132,21 @@ export function* bfTraverse<TNode>(options: BFTraverseOptions<TNode>): Generator
 	const currentParents: Map<TNode, TNode | undefined> = new Map();
 	const allParents: Map<TNode, TNode[]> = new Map();
 	currentParents.set(options.start, undefined);
+
 	allParents.set(options.start, []);
+
 	while (q.length > 0) {
 		const x = q.shift()!;
 		if (!visited.has(x)) {
 			visited.add(x);
-			yield reconstructPath(x);
+			const reconstructedPath = reconstructPath(x, visited);
+			yield reconstructedPath;
 			const neighbors = options.neighbors(x);
 			for (const neighbor of neighbors) {
 				q.push(neighbor);
 				if (!currentParents.has(neighbor)) {
 					allParents.set(neighbor, [x]);
+
 					currentParents.set(neighbor, x);
 				} else {
 					allParents.get(neighbor)?.push(x);
@@ -181,7 +185,7 @@ export interface BFSOptions<T> {
  * by the starting node and neighbors functions, looking
  * for the end node. Once found, the node is returned
  * along with the shortest path to reach it.
- * @param options 
+ * @param options
  */
 export function bfSearch<TNode>(options: BFSOptions<TNode>): BFTraverseResult<TNode> | undefined {
 	const traversal = bfTraverse({ start: options.start, neighbors: options.neighbors, allPaths: options.allPaths });
@@ -196,6 +200,73 @@ export function bfSearch<TNode>(options: BFSOptions<TNode>): BFTraverseResult<TN
 		}
 	}
 	return endNode;
+}
+
+interface AllPathsOptions<TNode> {
+	isEnd: (node: TNode) => boolean;
+	neighbors: (node: TNode) => TNode[];
+
+	/**
+	 * Determines whether or not a node can be revisited. Careful: if two nodes
+	 * are neighbors and can both be revisited, we will hit infinite regress.
+	 * @param node 
+	 * @param currentPath 
+	 */
+	canRevisit?(node: TNode, currentPath: TNode[]): boolean;
+	start: TNode;
+}
+
+/**
+ * Finds all paths in an undirected graph
+ * @param options 
+ * @returns 
+ */
+export function undirectedAllPaths<TNode>(options: AllPathsOptions<TNode>): TNode[][] {
+	let seen = new Set<TNode>();
+	const path: TNode[] = [options.start];
+	const paths: TNode[][] = [];
+	if (!options.canRevisit?.(options.start, path)) {
+		seen.add(options.start);
+	}
+	function stuck(node: TNode, stuckPath: TNode[]) {
+		if (options.isEnd(node)) {
+			return false;
+		}
+		const neighbors = options.neighbors(node);
+		for (const neighbor of neighbors) {
+			stuckPath.push(neighbor);
+			if (!seen.has(neighbor)) {
+				if (!options.canRevisit?.(neighbor, stuckPath)) {
+					seen.add(neighbor);
+				}
+				if (!stuck(neighbor, stuckPath)) {
+					return false;
+				}
+			}
+			stuckPath.pop();
+		}
+		return true;
+	}
+	function search(node: TNode): TNode[][] {
+		if (options.isEnd(node)) {
+			paths.push([...path]);
+			return paths;
+		}
+		seen = new Set<TNode>(path.filter(n => !options.canRevisit?.(n, path)));
+		if (stuck(node, [...path])) {
+			return paths;
+		}
+		const neighbors = options.neighbors(node);
+		for (const neighbor of neighbors) {
+			if (!path.filter(n => !options.canRevisit?.(n, path)).includes(neighbor)) {
+				path.push(neighbor);
+				search(neighbor);
+				path.pop();
+			}
+		}
+		return paths;
+	}
+	return search(options.start);
 }
 
 // Run tests if this file is executed directly.
