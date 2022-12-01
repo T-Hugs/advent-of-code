@@ -1,4 +1,4 @@
-import inquirer from "inquirer";
+//import inquirer from "inquirer";
 import playwright from "playwright-chromium";
 import { log, SolutionObject, solutionLogKey } from "./util/log";
 import chalk from "chalk";
@@ -27,6 +27,7 @@ async function getTokenInteractive(provider: string) {
 }
 
 async function run() {
+	const inquirer = await import("inquirer");
 	log(`
   Authenticate to Advent of Code to use submit and data download functions.
   Note: your token will be stored in plain text in a file at ./.scratch/sessionToken.
@@ -37,20 +38,24 @@ async function run() {
   your credentials other than what is described in the documentation, but I
   encourage you to read through the code anyway. Cheers!
   `);
-	const mode = await inquirer.prompt([{
-		name: "mode",
-		message: "How would you like to log in?",
-		type: "list",
-		choices: ["Interactive", "Manual"]
-	}]);
+	const mode = await inquirer.prompt([
+		{
+			name: "mode",
+			message: "How would you like to log in?",
+			type: "list",
+			choices: ["Interactive", "Manual"],
+		},
+	]);
 	let token: string | undefined = undefined;
 	if (mode.mode === "Interactive") {
-		const provider = await inquirer.prompt([{
-			name: "provider",
-			message: "Which auth provider would you like to use?",
-			type: "list",
-			choices: providers
-		}]);
+		const provider = await inquirer.prompt([
+			{
+				name: "provider",
+				message: "Which auth provider would you like to use?",
+				type: "list",
+				choices: providers,
+			},
+		]);
 		token = await getTokenInteractive(provider.provider);
 	} else if (mode.mode === "Manual") {
 		log(`Follow these instructions to get your auth token and paste it in the prompt below.
@@ -62,11 +67,15 @@ async function run() {
   6) Under Response headers, find the "set-cookie" header and look for a string starting with "session=".
   7) Paste everything after "session=" until the semicolon into the prompt below.
 	`);
-		token = (await inquirer.prompt([{
-			name: "token",
-			message: "Paste your session token here",
-			type: "input"
-		}])).token.trim();
+		token = (
+			await inquirer.prompt([
+				{
+					name: "token",
+					message: "Paste your session token here",
+					type: "input",
+				},
+			])
+		).token.trim();
 	}
 	if (token) {
 		localStorage.setItem("sessionToken", token);
