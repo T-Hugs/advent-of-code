@@ -1,0 +1,1 @@
+export const UA_STRING = "Mozilla/5.0 (+via {https://github.com/t-hugs/advent-of-code} by {trevorsg@gmail.com})";
