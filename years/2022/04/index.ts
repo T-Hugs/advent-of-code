@@ -13,16 +13,56 @@ const DAY = 4;
 // problem url  : https://adventofcode.com/2022/day/4
 
 async function p2022day4_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (const line of lines) {
+		const [first, second] = line.split(",");
+		const [firstStart, firstEnd] = first.split("-").map(Number);
+		const [secondStart, secondEnd] = second.split("-").map(Number);
+
+		if (firstStart <= secondStart && firstEnd >= secondEnd || secondStart <= firstStart && secondEnd >= firstEnd) {
+			count++;
+		}
+	}
+	return count;
 }
 
 async function p2022day4_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const lines = input.split("\n");
+	let count = 0;
+	for (const line of lines) {
+		const [first, second] = line.split(",");
+		const [firstStart, firstEnd] = first.split("-").map(Number);
+		const [secondStart, secondEnd] = second.split("-").map(Number);
+
+		if (firstEnd < secondStart || secondEnd < firstStart) {
+			count++;
+		}
+	}
+	return lines.length - count;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `2-4,6-8
+2-3,4-5
+5-7,7-9
+2-8,3-7
+6-6,4-6
+2-6,4-8`,
+		extraArgs: [],
+		expected: `2`
+	}];
+	const part2tests: TestCase[] = [{
+		input: `2-4,6-8
+2-3,4-5
+5-7,7-9
+2-8,3-7
+6-6,4-6
+2-6,4-8`,
+		extraArgs: [],
+		expected: `4`
+	}];
 
 	// Run tests
 	test.beginTests();
