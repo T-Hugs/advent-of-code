@@ -12,17 +12,81 @@ const DAY = 6;
 // data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\06\data.txt
 // problem url  : https://adventofcode.com/2022/day/6
 
+function solve(input: string, n: number) {
+	const lastN: (string | undefined)[] = new Array(n);
+	for (let i = 0; i < input.length; ++i) {
+		lastN[i % n] = input[i];
+
+		if (i >= n && new Set(lastN).size === n) {
+			return i + 1;
+		}
+	}
+	return undefined;
+}
+
 async function p2022day6_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	return solve(input, 4);
 }
 
 async function p2022day6_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	return solve(input, 14);
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `mjqjpqmgbljsphdztnvjfqwrcgsmlb`,
+			extraArgs: [],
+			expected: `7`,
+		},
+		{
+			input: `bvwbjplbgvbhsrlpgdmjqwftvncz`,
+			extraArgs: [],
+			expected: `5`,
+		},
+		{
+			input: `nppdvjthqldpwncqszvftbrmjlhg`,
+			extraArgs: [],
+			expected: `6`,
+		},
+		{
+			input: `nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg`,
+			extraArgs: [],
+			expected: `10`,
+		},
+		{
+			input: `zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw`,
+			extraArgs: [],
+			expected: `11`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `mjqjpqmgbljsphdztnvjfqwrcgsmlb`,
+			extraArgs: [],
+			expected: `19`,
+		},
+		{
+			input: `bvwbjplbgvbhsrlpgdmjqwftvncz`,
+			extraArgs: [],
+			expected: `23`,
+		},
+		{
+			input: `nppdvjthqldpwncqszvftbrmjlhg`,
+			extraArgs: [],
+			expected: `23`,
+		},
+		{
+			input: `nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg`,
+			extraArgs: [],
+			expected: `29`,
+		},
+		{
+			input: `zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw`,
+			extraArgs: [],
+			expected: `26`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();
@@ -45,7 +109,7 @@ async function run() {
 	const part1Solution = String(await p2022day6_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2022day6_part2(input));
 	const part2After = performance.now();
 
