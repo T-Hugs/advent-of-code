@@ -8,6 +8,7 @@ import chalk from "chalk";
 import * as fs from "fs/promises";
 import { existsSync, mkdir } from "fs";
 import { getSessionToken } from "./getToken";
+import { UA_STRING } from "./config";
 
 interface Settings {
 	pristine: boolean;
@@ -82,6 +83,7 @@ async function getDayData(day: number, year: number): Promise<string> {
 	const result = await fetch(uri, {
 		headers: {
 			cookie: `session=${sessionToken}`,
+			"user-agent": UA_STRING
 		},
 	});
 	if (result.status === 200) {

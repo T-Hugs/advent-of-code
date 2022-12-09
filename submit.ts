@@ -6,6 +6,7 @@ import fetch from "cross-fetch";
 import chalk from "chalk";
 import _ from "lodash";
 import { getSessionToken } from "./getToken";
+import { UA_STRING } from "./config";
 
 const appRoot = getAppRoot();
 const localStorage = new LocalStorage(path.join(appRoot, ".scratch"));
@@ -98,6 +99,7 @@ async function submit() {
 			cookie: `session=${sessionToken}`,
 			accept: `text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9`,
 			"content-type": "application/x-www-form-urlencoded",
+			"user-agent": UA_STRING
 		},
 		method: "post",
 		body: postData,
