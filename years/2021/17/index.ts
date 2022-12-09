@@ -13,16 +13,93 @@ const DAY = 17;
 // problem url  : https://adventofcode.com/2021/day/17
 
 async function p2021day17_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const [xs, ys] = input.slice(13).split(", ");
+	const [,xranges] = xs.split("=");
+	const [,yranges] = ys.split("=");
+	const [xlo, xhi] = xranges.split("..").map(Number);
+	const [ylo, yhi] = yranges.split("..").map(Number);
+
+	const maxSteps = 1000;
+	const goodShots: [number, number][] = [];
+
+	for (let i = 0; i < 1000; ++i) {
+		for (let j = 0; j < 1000; ++j) {
+			let [dx, dy] = [i, j];
+			let [x, y] = [0, 0];
+			for (let s = 0; s < maxSteps; ++s) {
+				x += dx;
+				y += dy;
+				if (dx > 0) {
+					dx--;
+				}
+				if (dx < 0) {
+					dx++;
+				}
+				dy--;
+
+				if (x >= xlo && x <= xhi && y >= ylo && y <= yhi) {
+					goodShots.push([i, j]);
+					break;
+				}
+				if (x > xhi) {
+					break;
+				}
+			}
+		}
+	}
+	const best = util.max(goodShots, g => g[1]);
+	return (best.value / 2 + 0.5) * best.value;
 }
 
 async function p2021day17_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const [xs, ys] = input.slice(13).split(", ");
+	const [,xranges] = xs.split("=");
+	const [,yranges] = ys.split("=");
+	const [xlo, xhi] = xranges.split("..").map(Number);
+	const [ylo, yhi] = yranges.split("..").map(Number);
+
+	const maxSteps = 1000;
+	const goodShots: [number, number][] = [];
+
+	for (let i = 0; i < 1000; ++i) {
+		for (let j = -1000; j < 1000; ++j) {
+			let [dx, dy] = [i, j];
+			let [x, y] = [0, 0];
+			for (let s = 0; s < maxSteps; ++s) {
+				x += dx;
+				y += dy;
+				if (dx > 0) {
+					dx--;
+				}
+				if (dx < 0) {
+					dx++;
+				}
+				dy--;
+
+				if (x >= xlo && x <= xhi && y >= ylo && y <= yhi) {
+					goodShots.push([i, j]);
+					break;
+				}
+				if (x > xhi) {
+					break;
+				}
+			}
+		}
+	}
+	return goodShots.length;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `target area: x=20..30, y=-10..-5`,
+		extraArgs: [],
+		expected: `45`
+	}];
+	const part2tests: TestCase[] = [{
+		input: `target area: x=20..30, y=-10..-5`,
+		extraArgs: [],
+		expected: `112`
+	}];
 
 	// Run tests
 	test.beginTests();
