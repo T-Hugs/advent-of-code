@@ -104,6 +104,36 @@ export interface CopyGridOptions {
 }
 
 /**
+ * Options to edit the size of a grid
+ */
+export interface EditGridOptions {
+	/**
+	 * Number of rows to add (negative to delete) to the top of the grid
+	 */
+	top?: number;
+
+	/**
+	 * Number of columns to add (negative to delete) to the left of the grid
+	 */
+	left?: number;
+
+	/**
+	 * Number of columns to add (negative to delete) to the right of the grid
+	 */
+	right?: number;
+
+	/**
+	 * Number of rows to add (negative to delete) to the bottom of the grid
+	 */
+	bottom?: number;
+
+	/**
+	 * Sigil to fill new cells with.
+	 */
+	fillWith?: string;
+}
+
+/**
  * Tuple describing a (row, column) position on a grid.
  */
 export type GridPos = [row: number, col: number];
@@ -114,20 +144,51 @@ export type GridPos = [row: number, col: number];
  *             to the other edge on the same axis.
  * - "stay":   If you go off the edge, just return the cell
  *             on that edge.
+ * - "expand": If you go off the edge, increase the size of
+ *             the grid in the direction(s) of movement.
  * - "none":   If you go off the edge, return undefined.
  * - Function: If a cell is returned, use that cell as the next
  *             position. Otherwise acts like "none".
  */
-export type MoveOption = "wrap" | "stay" | "none" | ((cell: Cell | undefined, origin: Cell) => GridPos);
+export type MoveOption = "wrap" | "stay" | "expand" | "none" | ((cell: Cell | undefined, origin: Cell) => GridPos);
 
-const colorOrder = [
+/**
+ * Options for moving from cell-to-cell
+ */
+export interface RepeatMovementsOptions {
+	/**
+	 * Number times to repeat the list of movements, or a function that returns false
+	 * when the movement should stop. Default: 1
+	 */
+	count?: number | ((cell: Cell | undefined, origin: Cell) => boolean);
+
+	/**
+	 * Determines how to handle movement off the edge of the grid. Default: "none"
+	 */
+	moveOption?: MoveOption;
+
+	/**
+	 * If true, and if count is a function, force one iteration of movement,
+	 * regardless of what the count function returns on the origin cell.
+	 */
+	forceOneMove?: boolean;
+
+	/**
+	 * If true, untrack the origin tracked cell, and start tracking the returned cell.
+	 */
+	updateTracking?: boolean;
+}
+
+const DEFAULT_FILL = " ";
+
+const COLOR_ORDER = [
 	chalk.yellowBright,
 	chalk.blueBright,
 	chalk.greenBright,
 	chalk.blueBright,
 	chalk.redBright,
 	chalk.cyanBright,
-];
+] as const;
 
 /**
  * List of common directions
@@ -162,7 +223,8 @@ export class Grid {
 	private nextColor = 0;
 	private sigilStats: { [sigil: string]: { colorIndex: number; count: number } } = {};
 	private batchUpdatedGrid: Grid | undefined;
-	private fillWith: string | undefined;
+	private fillWith: string;
+	private trackedCells: Set<Cell> = new Set();
 
 	constructor(options: GridOptions) {
 		if ((!options.rowCount || !options.colCount) && !options.serialized) {
@@ -171,6 +233,7 @@ export class Grid {
 		const splitSerial = options.serialized?.split("\n");
 		this.numRows = options.rowCount || splitSerial!.length;
 		this.numCols = options.colCount || splitSerial![0].length;
+		this.fillWith = options.fillWith ?? DEFAULT_FILL;
 
 		if (options.serialized) {
 			this.setFromSerialized(options.serialized);
@@ -198,8 +261,8 @@ export class Grid {
 	 * given character.
 	 * @param fillWith Character to fill the grid with. Defaults to a space.
 	 */
-	public initBlankGrid(fillWith: string | undefined) {
-		const sigil = fillWith ?? " ";
+	public initBlankGrid(fillWith?: string | undefined) {
+		const sigil = fillWith ?? this.fillWith;
 		this.ensureSigilRegistered(sigil);
 		this.grid = [];
 		for (const i of _.range(this.numRows)) {
@@ -237,13 +300,13 @@ export class Grid {
 		if (sigil === ".") {
 			return chalk.gray;
 		} else {
-			return colorOrder[this.sigilStats[sigil].colorIndex];
+			return COLOR_ORDER[this.sigilStats[sigil].colorIndex];
 		}
 	}
 
 	private ensureSigilRegistered(sigil: string) {
 		if (!this.sigilStats[sigil]) {
-			this.sigilStats[sigil] = { count: 0, colorIndex: this.nextColor++ % colorOrder.length };
+			this.sigilStats[sigil] = { count: 0, colorIndex: this.nextColor++ % COLOR_ORDER.length };
 			if (sigil === " ") {
 				// don't advance color for spaces
 				this.nextColor--;
@@ -319,28 +382,57 @@ export class Grid {
 	 *   GridPos: identifies a single cell based on its row and column
 	 *    string: the value of the cell
 	 *  Function: a predicate that is called on each cell in order.
+	 * @param track If true, the grid will maintain a reference to this cell and automatically
+	 * update it when the grid is updated.
 	 */
-	public getCell(input: GridPos | string | ((cell: Cell) => boolean)) {
-		let pos: GridPos | undefined = undefined;
+	public getCell(input: GridPos | string | ((cell: Cell) => boolean), track: boolean = false) {
+		let result: Cell | undefined = undefined;
 		if (typeof input === "string") {
 			for (const cell of this) {
 				if (cell.value === input) {
-					return cell;
+					result = cell;
 				}
 			}
 		} else if (typeof input === "function") {
 			for (const cell of this) {
 				if (input(cell)) {
-					return cell;
+					result = cell;
 				}
 			}
 		} else {
 			if (this.grid[input[0]] != undefined && this.grid[input[0]][input[1]] != undefined) {
-				return new Cell(this, input, this.getValue(input));
-			} else {
-				return undefined;
+				result = new Cell(this, input, this.getValue(input));
 			}
 		}
+		if (result && track) {
+			this.trackCell(result);
+		}
+		return result;
+	}
+
+	/**
+	 * Have the grid maintain a reference to this cell so that the cell is automatically
+	 * updated when the grid is updated. For example, if editGrid() is called, the cell's
+	 * position will be updated to reflect the new position of the cell.
+	 * @param cell
+	 */
+	public trackCell(cell: Cell) {
+		this.trackedCells.add(cell);
+	}
+
+	/**
+	 * Stop the grid from tracking the given cell.
+	 */
+	public untrackCell(cell: Cell) {
+		return this.trackedCells.delete(cell);
+	}
+
+	/**
+	 * Returns true if the grid is currently tracking this cell.
+	 * @param cell
+	 */
+	public isTracked(cell: Cell) {
+		return this.trackedCells.has(cell);
 	}
 
 	/**
@@ -396,7 +488,7 @@ export class Grid {
 		const subgrid = new Grid({
 			rowCount: destRowCount,
 			colCount: destColCount,
-			fillWith: options?.fillNewCellsWith,
+			fillWith: options?.fillNewCellsWith ?? this.fillWith,
 		});
 		if (_options.copyValues !== false) {
 			for (let i = srcStartRow; i < srcStartRow + srcRowCount; ++i) {
@@ -409,6 +501,93 @@ export class Grid {
 			}
 		}
 		return subgrid;
+	}
+
+	public editGrid(options: EditGridOptions) {
+		this.editTop(options);
+		this.editBottom(options);
+		this.editLeft(options);
+		this.editRight(options);
+	}
+
+	private editTop(options: Pick<EditGridOptions, "top" | "fillWith">) {
+		const { top = 0, fillWith = this.fillWith } = options;
+		if (top + this.numRows < 0) {
+			throw new Error("Cannot remove more rows than exist in the grid.");
+		}
+		this.numRows += top;
+		this.ensureSigilRegistered(fillWith);
+		if (top < 0) {
+			this.grid.splice(0, -top);
+		}
+		if (top > 0) {
+			for (let i = 0; i < top; ++i) {
+				this.grid.unshift(Array(this.numCols).fill(fillWith));
+			}
+			// Update the row for any tracked cells
+			for (const cell of this.trackedCells) {
+				cell.position[0] += top;
+			}
+		}
+	}
+
+	private editBottom(options: Pick<EditGridOptions, "bottom" | "fillWith">) {
+		const { bottom = 0, fillWith = this.fillWith } = options;
+		if (bottom + this.numRows < 0) {
+			throw new Error("Cannot remove more rows than exist in the grid.");
+		}
+		this.numRows += bottom;
+		this.ensureSigilRegistered(fillWith);
+		if (bottom < 0) {
+			this.grid.splice(this.numRows + bottom, -bottom);
+		}
+		if (bottom > 0) {
+			for (let i = 0; i < bottom; ++i) {
+				this.grid.push(Array(this.numCols).fill(fillWith));
+			}
+		}
+	}
+
+	private editLeft(options: Pick<EditGridOptions, "left" | "fillWith">) {
+		const { left = 0, fillWith = this.fillWith } = options;
+		if (left + this.numCols < 0) {
+			throw new Error("Cannot remove more columns than exist in the grid.");
+		}
+		this.numCols += left;
+		this.ensureSigilRegistered(fillWith);
+		if (left < 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].splice(0, -left);
+			}
+		}
+		if (left > 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].unshift(...Array(left).fill(fillWith));
+			}
+			// Update the column for any tracked cells
+			for (const cell of this.trackedCells) {
+				cell.position[1] += left;
+			}
+		}
+	}
+
+	private editRight(options: Pick<EditGridOptions, "right" | "fillWith">) {
+		const { right = 0, fillWith = this.fillWith } = options;
+		if (right + this.numCols < 0) {
+			throw new Error("Cannot remove more columns than exist in the grid.");
+		}
+		this.numCols += right;
+		this.ensureSigilRegistered(fillWith);
+		if (right < 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].splice(this.numCols + right, -right);
+			}
+		}
+		if (right > 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].push(...Array(right).fill(fillWith));
+			}
+		}
 	}
 
 	public rotate(count = 1, direction: "CW" | "CCW" = "CW") {
@@ -603,7 +782,7 @@ export class Cell {
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
 		moveOption: MoveOption = "none"
 	) {
-		return this.repeatMovements([Dir.N], count, moveOption);
+		return this.repeatMovements([Dir.N], { count, moveOption });
 	}
 
 	/**
@@ -615,7 +794,7 @@ export class Cell {
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
 		moveOption: MoveOption = "none"
 	) {
-		return this.repeatMovements([Dir.E], count, moveOption);
+		return this.repeatMovements([Dir.E], { count, moveOption });
 	}
 
 	/**
@@ -627,7 +806,7 @@ export class Cell {
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
 		moveOption: MoveOption = "none"
 	) {
-		return this.repeatMovements([Dir.S], count, moveOption);
+		return this.repeatMovements([Dir.S], { count, moveOption });
 	}
 
 	/**
@@ -639,26 +818,16 @@ export class Cell {
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
 		moveOption: MoveOption = "none"
 	) {
-		return this.repeatMovements([Dir.W], count, moveOption);
+		return this.repeatMovements([Dir.W], { count, moveOption });
 	}
 
 	/**
 	 * Repeats the given list of movements several times to find a new cell.
 	 * @param movements List of moves to make
-	 * @param count Number of times to move through the whole list of movements
-	 *              or a function that returns false when done.
-	 * @param moveOption How to handle hitting the edge, or a custom function that
-	 *                   can return a new position.
-	 * @param forceOneMove If true, and if count is a function, force one iteration
-	 *                     of movement, regardless of what the count function returns
-	 *                     on the origin cell.
+	 * @param options Options for the movement
 	 */
-	public repeatMovements(
-		movements: [dRow: number, dCol: number][],
-		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
-		moveOption: MoveOption = "none",
-		forceOneMove: boolean = true
-	) {
+	public repeatMovements(movements: [dRow: number, dCol: number][], options: RepeatMovementsOptions = {}) {
+		const { count = 1, moveOption = "none", forceOneMove = true, updateTracking = true } = options;
 		let nextPos = [...this.pos] as GridPos;
 		for (
 			let i = 0;
@@ -688,6 +857,23 @@ export class Cell {
 					nextPos[1] = lastValidCell.pos[1];
 					break;
 				}
+			} else if (moveOption === "expand") {
+				if (nextPos[0] < 0) {
+					this.grid.editGrid({ top: -nextPos[0] });
+					nextPos[0] = 0;
+				}
+				if (nextPos[1] < 0) {
+					this.grid.editGrid({ left: -nextPos[1] });
+					nextPos[1] = 0;
+				}
+				if (nextPos[0] >= this.grid.rowCount) {
+					this.grid.editGrid({ bottom: nextPos[0] - this.grid.rowCount + 1 });
+					nextPos[0] = this.grid.rowCount - 1;
+				}
+				if (nextPos[1] >= this.grid.colCount) {
+					this.grid.editGrid({ right: nextPos[1] - this.grid.colCount + 1 });
+					nextPos[1] = this.grid.colCount - 1;
+				}
 			} else if (typeof moveOption === "function") {
 				const result = moveOption(this.grid.getCell(nextPos), this);
 				if (result) {
@@ -695,7 +881,12 @@ export class Cell {
 				}
 			}
 		}
-		return this.grid.getCell(nextPos);
+		const result = this.grid.getCell(nextPos);
+		if (updateTracking && result && this.grid.isTracked(this)) {
+			this.grid.untrackCell(this);
+			this.grid.trackCell(result);
+		}
+		return result;
 	}
 
 	/**
@@ -806,6 +997,18 @@ if (require.main === module) {
 		c => c.neighbors(true).filter(n => n.value === ".").length === 2
 	).length;
 	console.log(`Num cells w/ 2 neighbors that are dots: ${cellsThatHaveTwoDotNeighbors} (expect 8)`);
+
+	g.editGrid({ top: 2, fillWith: "!" });
+	g.log();
+
+	g.editGrid({ bottom: 2, fillWith: "!" });
+	g.log();
+
+	g.editGrid({ left: 2, fillWith: "!" });
+	g.log();
+
+	g.editGrid({ right: 2, fillWith: "!" });
+	g.log();
 
 	// Copy to new grid with 2 row/column thick border of empty cells.
 	const borderSize = 2;

@@ -39,7 +39,7 @@ async function p2020day11_part2(input: string) {
 	grid.simulateCellularAutomata(
 		(grid, hasChanges) => hasChanges,
 		cell => {
-			const neighbors = dirs.map(d => cell.repeatMovements([Dir[d]], cell => cell?.value === "."));
+			const neighbors = dirs.map(d => cell.repeatMovements([Dir[d]], { count: cell => cell?.value === "." }));
 			if (cell.value === "L" && neighbors.every(n => n == undefined || n.value === "L" || n.value === ".")) {
 				return "#";
 			} else if (cell.value === "#" && neighbors.filter(n => n != undefined && n!.value === "#").length >= 5) {

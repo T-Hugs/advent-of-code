@@ -28,7 +28,7 @@ async function p2022day8_part1(input: string, ...params: any[]) {
 		for (const direction of [Dir.N, Dir.E, Dir.W, Dir.S]) {
 			let current = cell;
 			while (true) {
-				const next = current.repeatMovements([direction], 1, "none");
+				const next = current.repeatMovements([direction]);
 				if (!next) {
 					visCount++;
 					doneChecking = true;
@@ -60,7 +60,7 @@ async function p2022day8_part2(input: string, ...params: any[]) {
 			let current = cell;
 			let directionalScore = 0;
 			while (true) {
-				const next = current.repeatMovements([direction], 1, "none");
+				const next = current.repeatMovements([direction]);
 				if (!next) {
 					break;
 				}

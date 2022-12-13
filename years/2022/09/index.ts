@@ -14,12 +14,12 @@ const DAY = 9;
 // problem url  : https://adventofcode.com/2022/day/9
 
 async function p2022day9_part1(input: string, ...params: any[]) {
-	const grid = new Grid({ colCount: 1000, rowCount: 1000, fillWith: "." });
-	const headPos: GridPos = [500, 500];
-	const tailPos: GridPos = [500, 500];
+	const grid = new Grid({ colCount: 1, rowCount: 1, fillWith: "." });
+	const headPos: GridPos = [0, 0];
+	const tailPos: GridPos = [0, 0];
 
 	let headCell = grid.getCell(headPos);
-	let tailCell = grid.getCell(tailPos);
+	let tailCell = grid.getCell(tailPos, true);
 	const lines = input.split("\n");
 	for (const line of lines) {
 		const [dir, valStr] = line.split(" ");
@@ -28,16 +28,16 @@ async function p2022day9_part1(input: string, ...params: any[]) {
 		for (let i = 0; i < val; ++i) {
 			tailCell?.setValue("#");
 			if (dir === "U") {
-				headCell = headCell?.north();
+				headCell = headCell?.north(1, "expand");
 			}
 			if (dir === "D") {
-				headCell = headCell?.south();
+				headCell = headCell?.south(1, "expand");
 			}
 			if (dir === "L") {
-				headCell = headCell?.west();
+				headCell = headCell?.west(1, "expand");
 			}
 			if (dir === "R") {
-				headCell = headCell?.east();
+				headCell = headCell?.east(1, "expand");
 			}
 			if (headCell && tailCell) {
 				const headNeighbors = headCell?.neighbors(true);
@@ -57,9 +57,6 @@ async function p2022day9_part1(input: string, ...params: any[]) {
 			} else {
 				throw new Error("Catastrophic error");
 			}
-			//headCell.setValue("H");
-			//tailCell?.setValue("T");
-			//grid.log();
 		}
 	}
 	// grid.log();
