@@ -444,7 +444,10 @@ export class Grid {
 		const flipV = direction === "vertical" || direction === "both";
 		for (let i = 0; i < this.rowCount; ++i) {
 			for (let j = 0; j < this.colCount; ++j) {
-				newGrid.setCell([flipV ? this.rowCount - i - 1 : i, flipH ? this.colCount - j - 1 : j], this.getValue([i, j]));
+				newGrid.setCell(
+					[flipV ? this.rowCount - i - 1 : i, flipH ? this.colCount - j - 1 : j],
+					this.getValue([i, j])
+				);
 			}
 		}
 		return newGrid;
@@ -757,6 +760,15 @@ export class Cell {
 		);
 	}
 
+	public isEqual(other: Cell | undefined) {
+		return (
+			other !== undefined &&
+			this.position[0] === other.position[0] &&
+			this.position[1] === other.position[1] &&
+			this.grid === other.grid
+		);
+	}
+
 	/**
 	 * Set the value of this cell (calls to parent grid)
 	 * @param val Single-character string value to set
@@ -822,8 +834,10 @@ if (require.main === module) {
 	});
 	botHalf1.log();
 
-	const toRotate = new Grid({serialized: `1234
-5678`});
+	const toRotate = new Grid({
+		serialized: `1234
+5678`,
+	});
 	toRotate.log(false);
 	const rotate1 = toRotate.rotate(1);
 	rotate1.log(false);
