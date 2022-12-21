@@ -177,6 +177,11 @@ export interface RepeatMovementsOptions {
 	 * If true, untrack the origin tracked cell, and start tracking the returned cell.
 	 */
 	updateTracking?: boolean;
+
+	/**
+	 * Whether or not to transfer data to the new cell. Default: false
+	 */
+	transferData?: boolean;
 }
 
 const DEFAULT_FILL = " ";
@@ -224,7 +229,7 @@ export class Grid {
 	private sigilStats: { [sigil: string]: { colorIndex: number; count: number } } = {};
 	private batchUpdatedGrid: Grid | undefined;
 	private fillWith: string;
-	private trackedCells: Set<Cell> = new Set();
+	private trackedCells: Map<string, Cell> = new Map();
 
 	constructor(options: GridOptions) {
 		if ((!options.rowCount || !options.colCount) && !options.serialized) {
@@ -383,9 +388,10 @@ export class Grid {
 	 *    string: the value of the cell
 	 *  Function: a predicate that is called on each cell in order.
 	 * @param track If true, the grid will maintain a reference to this cell and automatically
-	 * update it when the grid is updated.
+	 * update it when the grid is updated. If null, return any tracked cell if it exists,
+	 * otherwise create a new one. If false, always return a new cell object and don't track it.
 	 */
-	public getCell(input: GridPos | string | ((cell: Cell) => boolean), track: boolean = false) {
+	public getCell(input: GridPos | string | ((cell: Cell) => boolean), track: boolean | null = false) {
 		let result: Cell | undefined = undefined;
 		if (typeof input === "string") {
 			for (const cell of this) {
@@ -404,8 +410,15 @@ export class Grid {
 				result = new Cell(this, input, this.getValue(input));
 			}
 		}
-		if (result && track) {
-			this.trackCell(result);
+		if (result) {
+			const resultCellKey = result.position.join(",");
+			if (this.trackedCells.has(resultCellKey) && track !== false) {
+				return this.trackedCells.get(resultCellKey);
+			} else {
+				if (track === true) {
+					this.trackCell(result);
+				}
+			}
 		}
 		return result;
 	}
@@ -417,14 +430,14 @@ export class Grid {
 	 * @param cell
 	 */
 	public trackCell(cell: Cell) {
-		this.trackedCells.add(cell);
+		this.trackedCells.set(cell.position.join(","), cell);
 	}
 
 	/**
 	 * Stop the grid from tracking the given cell.
 	 */
 	public untrackCell(cell: Cell) {
-		return this.trackedCells.delete(cell);
+		return this.trackedCells.delete(cell.position.join(","));
 	}
 
 	/**
@@ -432,7 +445,7 @@ export class Grid {
 	 * @param cell
 	 */
 	public isTracked(cell: Cell) {
-		return this.trackedCells.has(cell);
+		return this.trackedCells.has(cell.position.join(","));
 	}
 
 	/**
@@ -510,6 +523,14 @@ export class Grid {
 		this.editRight(options);
 	}
 
+	private reconcileTrackedCells() {
+		const newTrackedCells = new Map<string, Cell>();
+		for (const cell of this.trackedCells.values()) {
+			newTrackedCells.set(cell.position.join(","), cell);
+		}
+		this.trackedCells = newTrackedCells;
+	}
+
 	private editTop(options: Pick<EditGridOptions, "top" | "fillWith">) {
 		const { top = 0, fillWith = this.fillWith } = options;
 		if (top + this.numRows < 0) {
@@ -525,9 +546,10 @@ export class Grid {
 				this.grid.unshift(Array(this.numCols).fill(fillWith));
 			}
 			// Update the row for any tracked cells
-			for (const cell of this.trackedCells) {
+			for (const cell of this.trackedCells.values()) {
 				cell.position[0] += top;
 			}
+			this.reconcileTrackedCells();
 		}
 	}
 
@@ -565,9 +587,10 @@ export class Grid {
 				this.grid[i].unshift(...Array(left).fill(fillWith));
 			}
 			// Update the column for any tracked cells
-			for (const cell of this.trackedCells) {
+			for (const cell of this.trackedCells.values()) {
 				cell.position[1] += left;
 			}
+			this.reconcileTrackedCells();
 		}
 	}
 
@@ -688,14 +711,23 @@ export class Grid {
 	 * @param printGridInfo If true, prints a line describing the
 	 * number of rows and columns in the grid.
 	 */
-	public log(printGridInfo: boolean = true) {
+	public log(printGridInfo: boolean = true, cellToString?: (cell: Cell) => any) {
 		if (printGridInfo) {
 			console.log(`Grid with ${this.grid.length} rows and ${this.grid[0].length} columns.`);
 		}
 		for (let i = 0; i < this.grid.length; ++i) {
 			for (let j = 0; j < this.grid[0].length; ++j) {
-				const char = this.grid[i][j];
-				process.stdout.write(this.getSigilColor(char)(char));
+				if (typeof cellToString === "function") {
+					const cell = this.getCell([i, j], null);
+					if (cell) {
+						const char = this.grid[i][j];
+						const str = cellToString(cell) ?? this.getSigilColor(char)(char);
+						process.stdout.write(String(str));
+					}
+				} else {
+					const char = this.grid[i][j];
+					process.stdout.write(this.getSigilColor(char)(char));
+				}
 			}
 			process.stdout.write("\n");
 		}
@@ -745,6 +777,11 @@ export class Cell {
 	private grid: Grid;
 	private pos: GridPos;
 
+	/**
+	 * General purpose - attach any data you want to this cell. No type safety.
+	 */
+	public data: any = undefined;
+
 	constructor(grid: Grid, pos: GridPos, value: string) {
 		this.grid = grid;
 		this.pos = pos;
@@ -773,6 +810,7 @@ export class Cell {
 		return this.pos[0] * this.grid.colCount + this.pos[1];
 	}
 
+	// @todo fix the api for function sbelow
 	/**
 	 * Return the cell found `count` cells above of this cell.
 	 * @param count Number of cells to move
@@ -780,9 +818,10 @@ export class Cell {
 	 */
 	public north(
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
-		moveOption: MoveOption = "none"
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
 	) {
-		return this.repeatMovements([Dir.N], { count, moveOption });
+		return this.repeatMovements([Dir.N], { count, moveOption, ...options });
 	}
 
 	/**
@@ -792,9 +831,10 @@ export class Cell {
 	 */
 	public east(
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
-		moveOption: MoveOption = "none"
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
 	) {
-		return this.repeatMovements([Dir.E], { count, moveOption });
+		return this.repeatMovements([Dir.E], { count, moveOption, ...options });
 	}
 
 	/**
@@ -804,9 +844,10 @@ export class Cell {
 	 */
 	public south(
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
-		moveOption: MoveOption = "none"
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
 	) {
-		return this.repeatMovements([Dir.S], { count, moveOption });
+		return this.repeatMovements([Dir.S], { count, moveOption, ...options });
 	}
 
 	/**
@@ -816,9 +857,10 @@ export class Cell {
 	 */
 	public west(
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
-		moveOption: MoveOption = "none"
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
 	) {
-		return this.repeatMovements([Dir.W], { count, moveOption });
+		return this.repeatMovements([Dir.W], { count, moveOption, ...options });
 	}
 
 	/**
@@ -827,7 +869,7 @@ export class Cell {
 	 * @param options Options for the movement
 	 */
 	public repeatMovements(movements: [dRow: number, dCol: number][], options: RepeatMovementsOptions = {}) {
-		const { count = 1, moveOption = "none", forceOneMove = true, updateTracking = true } = options;
+		const { count = 1, moveOption = "none", forceOneMove = true, updateTracking = false, transferData } = options;
 		let nextPos = [...this.pos] as GridPos;
 		for (
 			let i = 0;
@@ -881,10 +923,14 @@ export class Cell {
 				}
 			}
 		}
-		const result = this.grid.getCell(nextPos);
+		const result = this.grid.getCell(nextPos, null);
 		if (updateTracking && result && this.grid.isTracked(this)) {
 			this.grid.untrackCell(this);
 			this.grid.trackCell(result);
+		}
+		if (transferData && result) {
+			result.data = this.data;
+			this.data = undefined;
 		}
 		return result;
 	}
@@ -894,7 +940,8 @@ export class Cell {
 	 * neighbors, while edge cells have three, and corner cells have two.
 	 * @param includeDiagonals Also include the 4 diagonal neighbors.
 	 */
-	public neighbors(includeDiagonals = false) {
+	public neighbors(includeDiagonals = false, includeSelf = false) {
+		const self = includeSelf ? this : undefined;
 		if (includeDiagonals) {
 			return [
 				this.north(),
@@ -905,9 +952,10 @@ export class Cell {
 				this.south()?.west(),
 				this.west(),
 				this.north()?.west(),
+				self,
 			].filter(n => n != undefined) as Cell[];
 		} else {
-			return [this.north(), this.east(), this.south(), this.west()].filter(n => n != undefined) as Cell[];
+			return [this.north(), this.east(), this.south(), this.west(), self].filter(n => n != undefined) as Cell[];
 		}
 	}
 
