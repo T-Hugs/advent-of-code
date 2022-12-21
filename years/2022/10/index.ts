@@ -14,7 +14,6 @@ const DAY = 10;
 
 async function p2022day10_part1(input: string, ...params: any[]) {
 	let regX = 1;
-	let cycle = 1;
 
 	const magicCycles = [20, 60, 100, 140, 180, 220];
 	let magicCycleIndex = 0;
@@ -51,8 +50,47 @@ async function p2022day10_part1(input: string, ...params: any[]) {
 	return signalStrengthSum;
 }
 
+// flag:ocr
 async function p2022day10_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	let regX = 1;
+	const lines = input.split("\n");
+
+	let state: "ready" | "adding" = "ready";
+	let toAdd = 0;
+	let inputPointer = 0;
+
+	let display = "";
+
+	for (let cycle = 1; cycle < 40 * 6 + 1; ++cycle) {
+		const xPos = (cycle - 1) % 40;
+		if (xPos === 0) {
+			display += "\n";
+		}
+		if (regX - 1 <= xPos && regX + 1 >= xPos) {
+			display += "#";
+		} else {
+			display += " ";
+		}
+		if (state === "ready") {
+			const line = lines[inputPointer++];
+			if (!line) {
+				break;
+			}
+			const [op, operand] = line.split(" ");
+			if (op === "addx") {
+				const val = Number(operand);
+				toAdd = val;
+				state = "adding";
+			}
+		} else if (state === "adding") {
+			regX += toAdd;
+			state = "ready";
+		}
+	}
+
+	console.log();
+	console.log(display);
+	console.log();
 }
 
 async function run() {
