@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { Cell, Grid, serializeCellArray } from "../../../util/grid";
+import { normalizeTestCases } from "../../../util/test";
 
 const YEAR = 2023;
 const DAY = 3;
@@ -79,34 +80,22 @@ async function run() {
 .664.598..`,
 			extraArgs: [],
 			expected: `4361`,
+			expectedPart2: `467835`,
 		},
 	];
-	const part2tests: TestCase[] = [
-		{
-			input: `467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..`,
-			extraArgs: [],
-			expected: `467835`,
-		},
-	];
+	const part2tests: TestCase[] = [];
+
+	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
 
 	// Run tests
 	test.beginTests();
 	await test.section(async () => {
-		for (const testCase of part1tests) {
+		for (const testCase of p1testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day3_part1(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});
 	await test.section(async () => {
-		for (const testCase of part2tests) {
+		for (const testCase of p2testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day3_part2(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});

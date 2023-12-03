@@ -2,6 +2,8 @@ interface TestCase {
 	input: string;
 	extraArgs?: any[];
 	expected: string;
+	expectedPart1?: string;
+	expectedPart2?: string;
 }
 
 type Obj<TVal> = { [key: string]: TVal };

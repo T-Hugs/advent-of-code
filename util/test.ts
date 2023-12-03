@@ -72,6 +72,33 @@ export function logTestResult(testCase: TestCase, result: string) {
 	testIndex++;
 }
 
+export function normalizeTestCases(part1tests: TestCase[], part2tests: TestCase[]): [TestCase[], TestCase[]] {
+	const p1testsNormalized: TestCase[] = [];
+	const p2testsNormalized: TestCase[] = [];
+	for (const testCase of part1tests) {
+		p1testsNormalized.push(testCase);
+		if (testCase.expectedPart2) {
+			p2testsNormalized.push({
+				input: testCase.input,
+				extraArgs: testCase.extraArgs,
+				expected: testCase.expectedPart2,
+			});
+		}
+	}
+	for (const testCase of part2tests) {
+		p2testsNormalized.push(testCase);
+		if (testCase.expectedPart1) {
+			p1testsNormalized.push({
+				input: testCase.input,
+				extraArgs: testCase.extraArgs,
+				expected: testCase.expectedPart1,
+			});
+		}
+	}
+	
+	return [p1testsNormalized, p2testsNormalized];
+}
+
 export function endTests() {
 	if (NO_TESTS) {
 		return;

@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
+import { normalizeTestCases } from "../../../util/test";
 
 const YEAR = 2023;
 const DAY = 2;
@@ -90,29 +91,22 @@ Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`,
 			extraArgs: [],
 			expected: `8`,
+			expectedPart2: `2286`
 		},
 	];
-	const part2tests: TestCase[] = [
-		{
-			input: `Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`,
-			extraArgs: [],
-			expected: `2286`,
-		},
-	];
+	const part2tests: TestCase[] = [];
+
+	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
 
 	// Run tests
 	test.beginTests();
 	await test.section(async () => {
-		for (const testCase of part1tests) {
+		for (const testCase of p1testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day2_part1(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});
 	await test.section(async () => {
-		for (const testCase of part2tests) {
+		for (const testCase of p2testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day2_part2(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});
@@ -129,7 +123,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`,
 	const part2Solution = String(await p2023day2_part2(input));
 	const part2After = performance.now();
 
-	logSolution(2, 2023, part1Solution, part2Solution);
+	logSolution(3, 2023, part1Solution, part2Solution);
 
 	log(chalk.gray("--- Performance ---"));
 	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
