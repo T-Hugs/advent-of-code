@@ -4,7 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
-import { Cell, Grid } from "../../../util/grid";
+import { Cell, Grid, serializeCellArray } from "../../../util/grid";
 
 const YEAR = 2023;
 const DAY = 3;
@@ -19,116 +19,55 @@ function isDigit(char: string) {
 
 async function p2023day3_part1(input: string, ...params: any[]) {
 	const grid = new Grid({ serialized: input });
-	let currentNumber = "";
-	let hasAdjacentSymbols = false;
-	let sum = 0;
-	for (const cell of grid) {
-		if (isDigit(cell.value)) {
-			currentNumber += cell.value;
-			const adjacentCells = cell.neighbors(true, false);
-			for (const adjacent of adjacentCells) {
-				if (adjacent.value !== "." && !isDigit(adjacent.value)) {
-					hasAdjacentSymbols = true;
-				}
+	const clusters = new Map<string, Cell[]>();
+	const symbolCells = grid.getCells(c => !isDigit(c.value) && c.value !== ".");
+	for (const symbol of symbolCells) {
+		const neighbors = symbol.neighbors(true);
+		for (const neighbor of neighbors) {
+			if (isDigit(neighbor.value)) {
+				const cluster = neighbor.findCellCluster({
+					test: c => isDigit(c.value),
+					allowDiagonal: false,
+					allowHorizontal: true,
+					allowVertical: false,
+				});
+				clusters.set(serializeCellArray(cluster), cluster);
 			}
-		} 
-		if (!isDigit(cell.value) || cell.isEastEdge()) {
-			const number = Number(currentNumber);
-			if (number && hasAdjacentSymbols) {
-				sum += number;
-			}
-			hasAdjacentSymbols = false;
-			currentNumber = "";
-		}
-		
-	}
-	return sum;
-}
-
-function getNumber(cell: Cell | undefined) {
-	if (!cell || !isDigit(cell.value)) {
-		return null;
-	}
-	let rightCells = [];
-	let leftCells = [];
-	let rightPointer = cell;
-	let leftPointer = cell;
-	while (true) {
-		const nextRight = rightPointer.east();
-		if (nextRight && isDigit(nextRight.value)) {
-			rightCells.push(nextRight);
-			rightPointer = nextRight;
-		} else {
-			break;
 		}
 	}
-	while (true) {
-		const nextLeft = leftPointer.west();
-		if (nextLeft && isDigit(nextLeft.value)) {
-			leftCells.push(nextLeft);
-			leftPointer = nextLeft;
-		} else {
-			break;
-		}
-	}
-	leftCells.reverse();
-	let full = leftCells.map(c => c.value).join("") + cell.value + rightCells.map(c => c.value).join("");
-	return Number(full);
+	return [...clusters.values()].map(cells => Number(cells.map(c => c.value).join(""))).reduce((a, b) => a + b);
 }
 
 async function p2023day3_part2(input: string, ...params: any[]) {
 	const grid = new Grid({ serialized: input });
-
-	const asterisks = grid.getCells(c => c.value === "*");
+	const symbolCells = grid.getCells(c => !isDigit(c.value) && c.value !== ".");
 	let sum = 0;
-	for (const asterisk of asterisks) {
-		const topLeft = asterisk.north()?.west();
-		const top = asterisk.north();
-		const topRight = asterisk.north()?.east();
-		const left = asterisk.west();
-		const right = asterisk.east();
-		const bottomLeft = asterisk.south()?.west();
-		const bottom = asterisk.south();
-		const bottomRight = asterisk.south()?.east();
-
-		const topLeftNumber = getNumber(topLeft);
-		const topNumber = getNumber(top);
-		const topRightNumber = getNumber(topRight);
-		const leftNumber = getNumber(left);
-		const rightNumber = getNumber(right);
-		const bottomLeftNumber = getNumber(bottomLeft);
-		const bottomNumber = getNumber(bottom);
-		const bottomRightNumber = getNumber(bottomRight);
-
-		const arr = [topLeftNumber, topNumber, topRightNumber, leftNumber, rightNumber, bottomLeftNumber, bottomNumber, bottomRightNumber];
-
-		if (topLeftNumber && topRightNumber && topNumber) {
-			arr[1] = null;
-			arr[2] = null;
-		} else if (topLeftNumber && topNumber) {
-			arr[1] = null;
-		} else if (topRightNumber && topNumber) {
-			arr[1] = null;
+	for (const symbol of symbolCells) {
+		const neighbors = symbol.neighbors(true);
+		const clusters = new Map<string, Cell[]>();
+		for (const neighbor of neighbors) {
+			if (isDigit(neighbor.value)) {
+				const cluster = neighbor.findCellCluster({
+					test: c => isDigit(c.value),
+					allowDiagonal: false,
+					allowHorizontal: true,
+					allowVertical: false,
+				});
+				clusters.set(serializeCellArray(cluster), cluster);
+			}
 		}
-		if (bottomLeftNumber && bottomRightNumber && bottomNumber) {
-			arr[6] = null;
-			arr[7] = null;
-		} else if (bottomLeftNumber && bottomNumber) {
-			arr[6] = null;
-		} else if (bottomRightNumber && bottomNumber) {
-			arr[6] = null;
-		}
-		const gears: number[] = arr.filter(x => x !== null) as any;
-		if (gears.length === 2) {
-			sum += gears.reduce((a, b) => a * b);
+		const clusterValues = [...clusters.values()];
+		if (clusterValues.length === 2) {
+			sum += Number(clusterValues[0].map(c => c.value).join("")) * Number(clusterValues[1].map(c => c.value).join(""));
 		}
 	}
 	return sum;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [{
-		input: `467..114..
+	const part1tests: TestCase[] = [
+		{
+			input: `467..114..
 ...*......
 ..35..633.
 ......#...
@@ -138,11 +77,13 @@ async function run() {
 ......755.
 ...$.*....
 .664.598..`,
-		extraArgs: [],
-		expected: `4361`
-	}];
-	const part2tests: TestCase[] = [{
-		input: `467..114..
+			extraArgs: [],
+			expected: `4361`,
+		},
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `467..114..
 ...*......
 ..35..633.
 ......#...
@@ -152,9 +93,10 @@ async function run() {
 ......755.
 ...$.*....
 .664.598..`,
-		extraArgs: [],
-		expected: `467835`
-	}];
+			extraArgs: [],
+			expected: `467835`,
+		},
+	];
 
 	// Run tests
 	test.beginTests();

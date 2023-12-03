@@ -1,5 +1,5 @@
 import * as util from "./util";
-import _ from "lodash";
+import _, { includes } from "lodash";
 import chalk from "chalk";
 
 /**
@@ -183,6 +183,81 @@ export interface RepeatMovementsOptions {
 	 */
 	transferData?: boolean;
 }
+
+/**
+ * Options for finding a cell cluster.
+ */
+export interface FindCellClusterOptions {
+	/**
+	 * Provide a function that returns true if the candidate cell belongs in the
+	 * cluster.
+	 *
+	 * @param candidate The cell being considered for inclusion in the cluster.
+	 * @param neighbor The cell that led to the candidate cell.
+	 * @param origin The cell that started the search.
+	 * @returns True if the candidate cell belongs in the cluster.
+	 *
+	 * @default Function Cell value equals origin/neighbor value
+	 */
+	test?: (candidate: Cell, neighbor: Cell, origin: Cell) => boolean;
+
+	/**
+	 * If true, allow vertical movement to find candidate cluster cells.
+	 *
+	 * @default true
+	 */
+	allowVertical?: boolean;
+
+	/**
+	 * If true, allow horizontal movement to find candidate cluster cells.
+	 *
+	 * @default true
+	 */
+	allowHorizontal?: boolean;
+
+	/**
+	 * If true, allow diagonal movement to find candidate cluster cells.
+	 * Note: Even when this is false, if neighborDistance is greater than 1 and both
+	 * horizontal and vertical are allowed, diagonal cells may be reached by
+	 * moving twice in orthogonal directions.
+	 *
+	 * @default true
+	 */
+	allowDiagonal?: boolean;
+
+	/**
+	 * Candidate cells will be located up to this distance from the current cluster
+	 * boundary.
+	 *
+	 * @default 1
+	 */
+	neighborDistance?: number;
+}
+
+/**
+ * Default test for finding a cell cluster. Returns true if the candidate cell value
+ * is equal to its neighbor's value.
+ *
+ * @see FindCellClusterOptions
+ */
+export const DEFAULT_CLUSTER_TEST = (candidate: Cell, neighbor: Cell, origin: Cell) => {
+	return candidate.value === neighbor.value;
+};
+
+/**
+ * Sort function (pass to Array.prototype.sort) that sorts cells top-left to bottom-right,
+ * by rows.
+ * @param a
+ * @param b
+ * @returns
+ */
+export const gridOrderCellSorter = (a: Cell, b: Cell) => {
+	if (a.position[0] === b.position[0]) {
+		return a.position[1] - b.position[1];
+	} else {
+		return a.position[0] - b.position[0];
+	}
+};
 
 const DEFAULT_FILL = " ";
 
@@ -938,25 +1013,68 @@ export class Cell {
 	/**
 	 * Get an array of this cell's neighbors. Internal cells have four
 	 * neighbors, while edge cells have three, and corner cells have two.
-	 * @param includeDiagonals Also include the 4 diagonal neighbors.
+	 * @param includeDiagonal Whether or not to include diagonal neighbors (default=false)
+	 * @param includeSelf Also include this cell in the result.
+	 * @param includeVertical Whether or not to include vertical neighbors (default=true)
+	 * @param includeHorizontal Whether or not to include horizontal neighbors (default=true)
+	 * @param distance How many cells away to include. Defaults to 1.
 	 */
-	public neighbors(includeDiagonals = false, includeSelf = false) {
-		const self = includeSelf ? this : undefined;
-		if (includeDiagonals) {
-			return [
-				this.north(),
-				this.north()?.east(),
-				this.east(),
-				this.south()?.east(),
-				this.south(),
-				this.south()?.west(),
-				this.west(),
-				this.north()?.west(),
-				self,
-			].filter(n => n != undefined) as Cell[];
-		} else {
-			return [this.north(), this.east(), this.south(), this.west(), self].filter(n => n != undefined) as Cell[];
+	public neighbors(
+		includeDiagonal = false,
+		includeSelf = false,
+		includeVertical = true,
+		includeHorizontal = true,
+		distance = 1
+	): Cell[] {
+		const neighbors: Map<string, Cell> = new Map();
+		if (includeSelf) {
+			neighbors.set(this.toString(), this);
 		}
+
+		for (let i = 0; i < distance; ++i) {
+			if (includeVertical) {
+				const northCell = this.north(i + 1) as Cell;
+				if (northCell) {
+					neighbors.set(northCell.toString(), northCell);
+				}
+				const southCell = this.south(i + 1) as Cell;
+				if (southCell) {
+					neighbors.set(southCell.toString(), southCell);
+				}
+			}
+
+			if (includeHorizontal) {
+				const westCell = this.west(i + 1) as Cell;
+				if (westCell) {
+					neighbors.set(westCell.toString(), westCell);
+				}
+				const eastCell = this.east(i + 1) as Cell;
+				if (eastCell) {
+					neighbors.set(eastCell.toString(), eastCell);
+				}
+			}
+
+			if (includeDiagonal) {
+				const northwestCell = this.north(i + 1)?.west(i + 1) as Cell;
+				if (northwestCell) {
+					neighbors.set(northwestCell.toString(), northwestCell);
+				}
+				const northeastCell = this.north(i + 1)?.east(i + 1) as Cell;
+				if (northeastCell) {
+					neighbors.set(northeastCell.toString(), northeastCell);
+				}
+				const southwestCell = this.south(i + 1)?.west(i + 1) as Cell;
+				if (southwestCell) {
+					neighbors.set(southwestCell.toString(), southwestCell);
+				}
+				const southeastCell = this.south(i + 1)?.east(i + 1) as Cell;
+				if (southeastCell) {
+					neighbors.set(southeastCell.toString(), southeastCell);
+				}
+			}
+		}
+
+		return [...neighbors.values()];
 	}
 
 	/**
@@ -998,6 +1116,35 @@ export class Cell {
 			(this.isSouthEdge() && this.isWestEdge())
 		);
 	}
+	public findCellCluster(
+		options?: FindCellClusterOptions,
+		_currentCluster = new Map<string, Cell>(),
+		_origin = this,
+		_depth = 0
+	) {
+		const {
+			test = DEFAULT_CLUSTER_TEST,
+			allowVertical = true,
+			allowHorizontal = true,
+			allowDiagonal = true,
+			neighborDistance = 1,
+		} = options ?? {};
+
+		const neighbors = this.neighbors(allowDiagonal, true, allowVertical, allowHorizontal, neighborDistance);
+		const inCluster = neighbors.filter(n => test(n, this, _origin));
+		for (const cell of inCluster) {
+			if (!_currentCluster.has(cell.toString())) {
+				_currentCluster.set(cell.toString(), cell);
+				cell.findCellCluster(options, _currentCluster, _origin, _depth + 1);
+			}
+		}
+
+		const values = [..._currentCluster.values()];
+		if (_depth === 0) {
+			values.sort(gridOrderCellSorter);
+		}
+		return values;
+	}
 
 	public isEqual(other: Cell | undefined) {
 		return (
@@ -1022,6 +1169,12 @@ export class Cell {
 	public toString() {
 		return `[${this.pos[0]}, ${this.pos[1]}]: ${this.value}`;
 	}
+}
+
+export const serializeCellArray = (cells: Cell[]) => {
+	const dup = [...cells];
+	dup.sort(gridOrderCellSorter);
+	return "{" + dup.map(c => c.toString()).join("},{") + "}";
 }
 
 if (require.main === module) {
@@ -1104,6 +1257,95 @@ if (require.main === module) {
 	vFlip.log(false);
 	const bothFlip = rotate4.flip("both");
 	bothFlip.log(false);
+
+	// Cluster tests
+	console.log("Cluster tests");
+	{
+		const clusterGridStr = `.....
+67...
+.123.
+..45.
+.....`;
+		const clusterGrid = new Grid({ serialized: clusterGridStr });
+		const twoCell = clusterGrid.getCell("2");
+		const cluster = twoCell?.findCellCluster({
+			allowDiagonal: false,
+			allowHorizontal: true,
+			allowVertical: false,
+			test: cell => /\d/.test(cell.value),
+			neighborDistance: 1,
+		});
+		console.log("Should be 123 ==> " + cluster?.map(c => c.value).join(""));
+	}
+	{
+		const clusterGridStr = `.....
+12...
+.345.
+..67.
+...8.`;
+		const clusterGrid = new Grid({ serialized: clusterGridStr });
+		const twoCell = clusterGrid.getCell("4");
+		const cluster = twoCell?.findCellCluster({
+			allowDiagonal: false,
+			allowHorizontal: false,
+			allowVertical: true,
+			test: cell => /\d/.test(cell.value),
+			neighborDistance: 1,
+		});
+		console.log("Should be 46 ==> " + cluster?.map(c => c.value).join(""));
+	}
+	{
+		const clusterGridStr = `.....
+12...
+.345.
+..67.
+...8.`;
+		const clusterGrid = new Grid({ serialized: clusterGridStr });
+		const twoCell = clusterGrid.getCell("4");
+		const cluster = twoCell?.findCellCluster({
+			allowDiagonal: false,
+			allowHorizontal: true,
+			allowVertical: true,
+			test: cell => /\d/.test(cell.value),
+			neighborDistance: 1,
+		});
+		console.log("Should be 12345678 ==> " + cluster?.map(c => c.value).join(""));
+	}
+	{
+		const clusterGridStr = `.....
+1....
+.2...
+..3..
+...4.`;
+		const clusterGrid = new Grid({ serialized: clusterGridStr });
+		const twoCell = clusterGrid.getCell("4");
+		const cluster = twoCell?.findCellCluster({
+			allowDiagonal: true,
+			allowHorizontal: true,
+			allowVertical: true,
+			test: cell => /\d/.test(cell.value),
+			neighborDistance: 1,
+		});
+		console.log("Should be 1234 ==> " + cluster?.map(c => c.value).join(""));
+	}
+
+	{
+		const clusterGridStr = `.....
+1....
+.....
+..3..
+...4.`;
+		const clusterGrid = new Grid({ serialized: clusterGridStr });
+		const twoCell = clusterGrid.getCell("4");
+		const cluster = twoCell?.findCellCluster({
+			allowDiagonal: true,
+			allowHorizontal: true,
+			allowVertical: true,
+			test: cell => /\d/.test(cell.value),
+			neighborDistance: 2,
+		});
+		console.log("Should be 134 ==> " + cluster?.map(c => c.value).join(""));
+	}
 
 	function conway(iterations: number = 100, rows: number = 30, cols: number = 50) {
 		const g = new Grid({ rowCount: rows, colCount: cols, fillWith: "." });
