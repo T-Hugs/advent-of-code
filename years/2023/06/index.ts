@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
+import { normalizeTestCases } from "../../../util/test";
 
 const YEAR = 2023;
 const DAY = 6;
@@ -24,15 +25,17 @@ async function run() {
 	const part1tests: TestCase[] = [];
 	const part2tests: TestCase[] = [];
 
+	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
+
 	// Run tests
 	test.beginTests();
 	await test.section(async () => {
-		for (const testCase of part1tests) {
+		for (const testCase of p1testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day6_part1(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});
 	await test.section(async () => {
-		for (const testCase of part2tests) {
+		for (const testCase of p2testsNormalized) {
 			test.logTestResult(testCase, String(await p2023day6_part2(testCase.input, ...(testCase.extraArgs || []))));
 		}
 	});
