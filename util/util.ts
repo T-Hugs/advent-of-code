@@ -374,3 +374,11 @@ export function md5(input: string) {
 	hash.update(input);
 	return hash.digest("hex");
 }
+
+export function sumArray(arr: Iterable<number>) {
+	let sum = 0;
+	for (const elem of arr) {
+		sum += elem;
+	}
+	return sum;
+}
