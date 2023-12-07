@@ -78,10 +78,10 @@ interface SeedMap {
 	[key: string]: [number, number, number, number][];
 }
 
-function getDestInfo(src: number, map: SeedMap, srcName: string) {
+function getDestInfo(src: number, ranges: [number, number, number, number][]) {
 	let next = null;
-	for (let i = 0; i < map[srcName].length; ++i) {
-		const [srcStart, srcEnd, destStart, destEnd] = map[srcName][i];
+	for (let i = 0; i < ranges.length; ++i) {
+		const [srcStart, srcEnd, destStart, destEnd] = ranges[i];
 
 		// Not in the map
 		if (srcStart > src) {
@@ -113,6 +113,7 @@ async function p2023day5_part2(input: string, ...params: any[]) {
 		seedRanges.push([seeds[i], seeds[i] + seeds[i + 1] - 1]);
 	}
 	const map: SeedMap = {};
+	const order: string[] = [];
 
 	let ranges = seedRanges;
 	ranges.sort((a, b) => a[0] - b[0]);
@@ -120,6 +121,7 @@ async function p2023day5_part2(input: string, ...params: any[]) {
 		const groupStr = groups[i];
 		const groupLines = groupStr.split("\n");
 		const [srcName] = groupLines[0].split(" ")[0].split("-to-");
+		order.push(srcName);
 		map[srcName] = [];
 		for (let j = 1; j < groupLines.length; ++j) {
 			const [dest, src, len] = groupLines[j].split(" ").map(Number);
@@ -127,23 +129,113 @@ async function p2023day5_part2(input: string, ...params: any[]) {
 			map[srcName].sort((a, b) => a[0] - b[0]);
 		}
 	}
+	const keys = Object.keys(map);
 
-	let currentRanges = ranges;
-	for (const key of Object.keys(map)) {
-		const destRanges: [number, number][] = [];
-		currentRanges.sort((a, b) => a[0] - b[0]);
-		const nextRanges: [number, number][] = [];
-		for (const range of currentRanges) {
-			let currentSeed = range[0];
-			while (currentSeed <= range[1]) {
-				const destInfo = getDestInfo(currentSeed, map, key);
-				nextRanges.push([currentSeed, Math.min(currentSeed + destInfo.remaining - 1, range[1])]);
-				destRanges.push([destInfo.dest, destInfo.dest + destInfo.remaining - 1]);
-				currentSeed += destInfo.remaining + 1;
+	// fill in missing ranges
+	for (const key of keys) {
+		const rangesInKey = map[key];
+		let currentSrc = 0;
+		const rangesToAdd: [number, number, number, number][] = [];
+		for (let i = 0; i < rangesInKey.length; ++i) {
+			const [srcStart, srcEnd, destStart, destEnd] = rangesInKey[i];
+			if (currentSrc < srcStart) {
+				rangesToAdd.push([currentSrc, srcStart - 1, currentSrc, srcStart - 1]);
+				currentSrc = srcStart;
+				i--;
+			} else {
+				currentSrc = srcEnd + 1;
 			}
 		}
-		currentRanges = nextRanges;
+		rangesToAdd.push([currentSrc, Number.MAX_SAFE_INTEGER, currentSrc, Number.MAX_SAFE_INTEGER]);
+		map[key].push(...rangesToAdd);
+		map[key].sort((a, b) => a[0] - b[0]);
 	}
+
+	// collapse mappings
+	let collapsed: [number, number, number, number][] = map["seed"];
+	for (let i = 1; i < order.length - 1; ++i) {
+		const key = order[i];
+		let currentSrc = 0;
+		const map1 = collapsed;
+		const map2 = map[key];
+		let map1Ptr = 0;
+		let map2Ptr = 0;
+		const nextCollapsed: [number, number, number, number][] = [];
+		while (true) {
+			if (map1Ptr === map1.length && map2Ptr === map2.length) {
+				break;
+			}
+			const srcStart = currentSrc;
+			const isMap1 = map2Ptr === map2.length || map1[map1Ptr][1] < map2[map2Ptr][1] ? true : false;
+			const appropriateMapForEnding = isMap1 ? map1 : map2;
+			const firstDestStartInfo = getDestInfo(srcStart, map1);
+			const secondDestStartInfo = getDestInfo(firstDestStartInfo.dest, map2);
+			const srcEnd = srcStart + Math.min(secondDestStartInfo.remaining, firstDestStartInfo.remaining);
+			// const srcEnd = appropriateMapForEnding[isMap1 ? map1Ptr : map2Ptr][1];
+			const firstDestEndInfo = getDestInfo(srcEnd, map1);
+			const secondDestEndInfo = getDestInfo(firstDestEndInfo.dest, map2);
+			nextCollapsed.push([srcStart, srcEnd, secondDestStartInfo.dest, secondDestEndInfo.dest]);
+			currentSrc = srcEnd + 1;
+			if (isMap1) {
+				map1Ptr++;
+			} else {
+				map2Ptr++;
+			}
+			if (srcEnd === Number.MAX_SAFE_INTEGER) {
+				break;
+			}
+		}
+		nextCollapsed.sort((a, b) => a[0] - b[0]);
+		collapsed = nextCollapsed;
+	}
+
+	let minVal = Number.MAX_SAFE_INTEGER;
+	for (const range of collapsed) {
+		const candidate = range[0];
+		const found = ranges.find(r => r[0] <= candidate && candidate <= r[1]);
+		if (found) {
+			if (range[2] < minVal) {
+				minVal = range[2];
+			}
+		}
+	}
+	return minVal;
+
+	// let currentRanges = ranges;
+	// for (let i = 0; i < keys.length; ++i) {
+	// 	const key = keys[i];
+	// 	// const destRanges: [number, number][] = currentRanges;
+	// 	for (let j = 0; j < i + 1; ++j) {
+	// 		if (j === i) {
+	// 			const newRanges: [number, number][] = [];
+	// 			for (const range of currentRanges) {
+	// 				let currentSrc = range[0];
+
+	// 				while (currentSrc <= range[1]) {
+	// 					const destInfo = getDestInfo(currentSrc, map[key]);
+	// 					newRanges.push([currentSrc, Math.min(currentSrc + destInfo.remaining - 1, range[1])]);
+	// 					currentSrc += destInfo.remaining + 1;
+	// 				}
+	// 			}
+	// 			currentRanges = newRanges;
+	// 		} else {
+	// 		}
+
+			// currentRanges.sort((a, b) => a[0] - b[0]);
+			// const nextRanges: [number, number][] = [];
+			// const nextDestRanges: [number, number][] = [];
+			// for (const range of destRanges) {
+			// 	let currentSeed = range[0];
+			// 	while (currentSeed <= range[1]) {
+			// 		const destInfo = getDestInfo(currentSeed, map, key);
+			// 		nextRanges.push([currentSeed, Math.min(currentSeed + destInfo.remaining - 1, range[1])]);
+			// 		nextDestRanges.push([destInfo.dest, destInfo.dest + destInfo.remaining - 1]);
+			// 		currentSeed += destInfo.remaining + 1;
+			// 	}
+			// }
+			// currentRanges = nextRanges;
+	// 	}
+	// }
 
 	// const maps: any = {};
 	// const order: string[] = [];
