@@ -96,7 +96,6 @@ function getDestInfo(src: number, ranges: [number, number, number, number][]) {
 		return { dest: destStart + (src - srcStart), remaining: srcEnd - src };
 	}
 
-	// Not mapped. When is the next mapped seed?
 	if (next) {
 		return { dest: src, remaining: next - src };
 	} else {
@@ -104,7 +103,6 @@ function getDestInfo(src: number, ranges: [number, number, number, number][]) {
 	}
 }
 
-// [dest] [src] [len]
 async function p2023day5_part2(input: string, ...params: any[]) {
 	const groups = input.split("\n\n");
 	const seeds = groups[0].split(": ")[1].split(" ").map(Number);
@@ -167,11 +165,9 @@ async function p2023day5_part2(input: string, ...params: any[]) {
 			}
 			const srcStart = currentSrc;
 			const isMap1 = map2Ptr === map2.length || map1[map1Ptr][1] < map2[map2Ptr][1] ? true : false;
-			const appropriateMapForEnding = isMap1 ? map1 : map2;
 			const firstDestStartInfo = getDestInfo(srcStart, map1);
 			const secondDestStartInfo = getDestInfo(firstDestStartInfo.dest, map2);
 			const srcEnd = srcStart + Math.min(secondDestStartInfo.remaining, firstDestStartInfo.remaining);
-			// const srcEnd = appropriateMapForEnding[isMap1 ? map1Ptr : map2Ptr][1];
 			const firstDestEndInfo = getDestInfo(srcEnd, map1);
 			const secondDestEndInfo = getDestInfo(firstDestEndInfo.dest, map2);
 			nextCollapsed.push([srcStart, srcEnd, secondDestStartInfo.dest, secondDestEndInfo.dest]);
@@ -200,103 +196,6 @@ async function p2023day5_part2(input: string, ...params: any[]) {
 		}
 	}
 	return minVal;
-
-	// let currentRanges = ranges;
-	// for (let i = 0; i < keys.length; ++i) {
-	// 	const key = keys[i];
-	// 	// const destRanges: [number, number][] = currentRanges;
-	// 	for (let j = 0; j < i + 1; ++j) {
-	// 		if (j === i) {
-	// 			const newRanges: [number, number][] = [];
-	// 			for (const range of currentRanges) {
-	// 				let currentSrc = range[0];
-
-	// 				while (currentSrc <= range[1]) {
-	// 					const destInfo = getDestInfo(currentSrc, map[key]);
-	// 					newRanges.push([currentSrc, Math.min(currentSrc + destInfo.remaining - 1, range[1])]);
-	// 					currentSrc += destInfo.remaining + 1;
-	// 				}
-	// 			}
-	// 			currentRanges = newRanges;
-	// 		} else {
-	// 		}
-
-			// currentRanges.sort((a, b) => a[0] - b[0]);
-			// const nextRanges: [number, number][] = [];
-			// const nextDestRanges: [number, number][] = [];
-			// for (const range of destRanges) {
-			// 	let currentSeed = range[0];
-			// 	while (currentSeed <= range[1]) {
-			// 		const destInfo = getDestInfo(currentSeed, map, key);
-			// 		nextRanges.push([currentSeed, Math.min(currentSeed + destInfo.remaining - 1, range[1])]);
-			// 		nextDestRanges.push([destInfo.dest, destInfo.dest + destInfo.remaining - 1]);
-			// 		currentSeed += destInfo.remaining + 1;
-			// 	}
-			// }
-			// currentRanges = nextRanges;
-	// 	}
-	// }
-
-	// const maps: any = {};
-	// const order: string[] = [];
-
-	// for (let i = 1; i < groups.length; i++) {
-	// 	const group = groups[i];
-	// 	const groupLines = group.split("\n");
-	// 	const [typewords] = groupLines[0].split(" ");
-	// 	const [a, , b] = groupLines[0].split("-");
-	// 	if (!maps[a]) {
-	// 		maps[a] = {};
-	// 	}
-	// 	if (!maps[b]) {
-	// 		maps[b] = {};
-	// 	}
-
-	// 	for (let j = 1; j < groupLines.length; j++) {
-	// 		const [dest, src, len] = groupLines[j].split(" ").map(Number);
-	// 		maps[a][src] = [len, dest];
-	// 	}
-	// 	order.push(a);
-
-	// 	if (i === groups.length - 1) {
-	// 		order.push(b);
-	// 	}
-	// }
-
-	// const orderCopy = [...order];
-	// order.pop();
-	// order.pop();
-	// order.reverse();
-
-	// // @ts-ignore
-	// const lowestDestination = Math.min(...Object.values(maps[order[0]]).map(([, dest]) => dest));
-
-	// // @ts-ignore
-	// let correspondingSrc = Number(Object.entries(maps[order[0]]).find(([, [,dest]]) => dest === lowestDestination)![0]);
-	// let correspondingLen = maps[order[0]][correspondingSrc][0];
-
-	// order.shift();
-	// for (const thing of order) {
-	// 	console.log(thing, correspondingSrc);
-	// 	const map = maps[thing];
-
-	// 	for (const [srcStr, [len, dest]] of Object.entries(map) as any) {
-	// 		const src = Number(srcStr);
-	// 		if (correspondingSrc >= dest && correspondingSrc <= dest + correspondingLen - 1) {
-
-	// 			// @ts-ignore
-	// 			correspondingSrc = Number(Object.entries(maps[order[0]]).find(([, [,_dest]]) => _dest === dest)![0]);
-	// 			correspondingLen = maps[order[0]][correspondingSrc][0];
-	// 			break;
-	// 		}
-	// 	}
-	// }
-
-	// console.log(correspondingSrc, correspondingLen);
-
-	// console.log("---")
-
-	// console.log(getLocation(331633133, maps, orderCopy, true));
 }
 
 async function run() {

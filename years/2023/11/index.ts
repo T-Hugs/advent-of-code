@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { normalizeTestCases } from "../../../util/test";
+import { Grid } from "../../../util/grid";
 
 const YEAR = 2023;
 const DAY = 11;
@@ -14,16 +15,130 @@ const DAY = 11;
 // problem url  : https://adventofcode.com/2023/day/11
 
 async function p2023day11_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+	const rowsToExpand: number[] = [];
+	const colsToExpand: number[] = [];
+	for (let i = 0; i < grid.rowCount; ++i) {
+		if (grid.getCells(c => c.position[0] === i).every(c => c.value === ".")) {
+			rowsToExpand.push(i);
+		}
+	}
+	for (let i = 0; i < grid.colCount; ++i) {
+		if (grid.getCells(c => c.position[1] === i).every(c => c.value === ".")) {
+			colsToExpand.push(i);
+		}
+	}
+
+	rowsToExpand.reverse();
+	colsToExpand.reverse();
+
+	for (const row of rowsToExpand) {
+		grid.editGrid({atRow: {count: 1, index: row}, fillWith: "."});
+	}
+	for (const col of colsToExpand) {
+		grid.editGrid({atCol: {count: 1, index: col}, fillWith: "."});
+	}
+
+	const galaxies = grid.getCells("#");
+	let sum = 0;
+
+	for (let i = 0; i < galaxies.length - 1; ++i) {
+		const gal1 = galaxies[i];
+		for (let j = i + 1; j < galaxies.length; ++j) {
+			const gal2 = galaxies[j];
+			sum += gal1.manhattanDistanceTo(gal2);
+		}
+	}
+	return sum;
 }
 
 async function p2023day11_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const expandAmount = Number(params[0]) || 1000000;
+	const grid = new Grid({ serialized: input });
+	const rowsToExpand: number[] = [];
+	const colsToExpand: number[] = [];
+	for (let i = 0; i < grid.rowCount; ++i) {
+		if (grid.getCells(c => c.position[0] === i).every(c => c.value === ".")) {
+			rowsToExpand.push(i);
+		}
+	}
+	for (let i = 0; i < grid.colCount; ++i) {
+		if (grid.getCells(c => c.position[1] === i).every(c => c.value === ".")) {
+			colsToExpand.push(i);
+		}
+	}
+
+	const galaxies = grid.getCells("#");
+	let sum = 0;
+
+	for (let i = 0; i < galaxies.length - 1; ++i) {
+		const gal1 = galaxies[i];
+		for (let j = i + 1; j < galaxies.length; ++j) {
+			const gal2 = galaxies[j];
+			const lowRow = Math.min(gal1.position[0], gal2.position[0]);
+			const highRow = Math.max(gal1.position[0], gal2.position[0]);
+			const lowCol = Math.min(gal1.position[1], gal2.position[1]);
+			const highCol = Math.max(gal1.position[1], gal2.position[1]);
+			const expandedRowCount = rowsToExpand.filter(r => r > lowRow && r < highRow).length;
+			const expandedColCount = colsToExpand.filter(c => c > lowCol && c < highCol).length;
+			const vDist = highRow - lowRow - expandedRowCount + expandedRowCount * expandAmount;
+			const hDist = highCol - lowCol - expandedColCount + expandedColCount * expandAmount;
+			sum += vDist + hDist
+			if (!sum) {
+				console.log("What");
+			}
+		}
+	}
+	return sum;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....`,
+			extraArgs: [],
+			expected: `374`,
+			expectedPart2: ``,
+		},
+	];
+	const part2tests: TestCase[] = [{
+		input: `...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....`,
+		extraArgs: [10],
+		expected: `1030`,
+		expectedPart1: ``
+	}, {
+		input: `...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....`,
+		extraArgs: [100],
+		expected: `8410`,
+		expectedPart1: ``
+	}];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
 
@@ -48,7 +163,7 @@ async function run() {
 	const part1Solution = String(await p2023day11_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2023day11_part2(input));
 	const part2After = performance.now();
 
