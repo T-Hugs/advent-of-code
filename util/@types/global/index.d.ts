@@ -4,6 +4,7 @@ interface TestCase {
 	expected: string;
 	expectedPart1?: string;
 	expectedPart2?: string;
+	ignore?: boolean;
 }
 
 type Obj<TVal> = { [key: string]: TVal };
