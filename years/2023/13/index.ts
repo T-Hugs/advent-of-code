@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { normalizeTestCases } from "../../../util/test";
+import { Grid } from "../../../util/grid";
 
 const YEAR = 2023;
 const DAY = 13;
@@ -13,16 +14,119 @@ const DAY = 13;
 // data path    : /home/trevorsg/dev/t-hugs/advent-of-code/years/2023/13/data.txt
 // problem url  : https://adventofcode.com/2023/day/13
 
+function reflects(grid: Grid, index: number, vertical: boolean, allowOneDifference = false): boolean {
+	if (vertical) {
+		const distanceToEdge = Math.min(index, grid.colCount - index);
+		const leftGrid = grid.copyGrid({ srcStartCol: index - distanceToEdge, srcColCount: distanceToEdge });
+		const rightGrid = grid.copyGrid({ srcStartCol: index, srcColCount: distanceToEdge }).flip("horizontal");
+
+		if (allowOneDifference) {
+			return leftGrid.countDifferences(rightGrid) === 1;
+		} else {
+			return leftGrid.equals(rightGrid);
+		}
+	} else {
+		const distanceToEdge = Math.min(index, grid.rowCount - index);
+		const topGrid = grid.copyGrid({ srcStartRow: index - distanceToEdge, srcRowCount: distanceToEdge });
+		const bottomGrid = grid.copyGrid({ srcStartRow: index, srcRowCount: distanceToEdge }).flip("vertical");
+
+		if (allowOneDifference) {
+			return topGrid.countDifferences(bottomGrid) === 1;
+		} else {
+			return topGrid.equals(bottomGrid);
+		}
+	}
+}
+
 async function p2023day13_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	let summary = 0;
+	for (const group of groups) {
+		const grid = new Grid({ serialized: group });
+		let gridSummary = 0;
+		for (let i = 1; i < grid.colCount; ++i) {
+			if (reflects(grid, i, true)) {
+				gridSummary = i;
+			}
+		}
+		if (gridSummary === 0) {
+			for (let i = 1; i < grid.rowCount; ++i) {
+				if (reflects(grid, i, false)) {
+					gridSummary += 100 * i;
+				}
+			}
+		}
+		summary += gridSummary;
+	}
+	return summary;
 }
 
 async function p2023day13_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const groups = input.split("\n\n");
+	let summary = 0;
+	for (const group of groups) {
+		const grid = new Grid({ serialized: group });
+		let gridSummary = 0;
+		for (let i = 1; i < grid.colCount; ++i) {
+			if (reflects(grid, i, true, true)) {
+				gridSummary = i;
+			}
+		}
+		if (gridSummary === 0) {
+			for (let i = 1; i < grid.rowCount; ++i) {
+				if (reflects(grid, i, false, true)) {
+					gridSummary += 100 * i;
+				}
+			}
+		}
+		summary += gridSummary;
+	}
+	return summary;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#`,
+			extraArgs: [],
+			expected: `405`,
+			expectedPart2: `400`,
+		},
+		{
+			input: `#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#
+
+#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.`,
+			extraArgs: [],
+			expected: `405`,
+			expectedPart2: `400`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
@@ -48,7 +152,7 @@ async function run() {
 	const part1Solution = String(await p2023day13_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2023day13_part2(input));
 	const part2After = performance.now();
 

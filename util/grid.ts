@@ -657,7 +657,7 @@ export class Grid {
 		}
 		if (count > 0) {
 			for (let i = 0; i < this.numRows; ++i) {
-				this.grid[i].splice(index, 0, ...(Array(count).fill(fillWith)));
+				this.grid[i].splice(index, 0, ...Array(count).fill(fillWith));
 			}
 			for (const cell of this.trackedCells.values()) {
 				if (cell.position[1] > index) {
@@ -869,6 +869,44 @@ export class Grid {
 			process.stdout.write("\n");
 		}
 		console.log();
+	}
+
+	/**
+	 * If grids have the same dimensions, count the number of cells that are different.
+	 * @param other
+	 * @returns
+	 */
+	public countDifferences(other: Grid): number {
+		let differences = 0;
+		if (this.rowCount === other.rowCount && this.colCount === other.colCount) {
+			for (const cell of this) {
+				if (cell.value !== other.getValue(cell.position)) {
+					differences++;
+				}
+			}
+		} else {
+			throw new Error("Cannot count differences of grids with different dimensions.");
+		}
+		return differences;
+	}
+
+	/**
+	 * Returns true if this grid and other have the same dimensions and equal cell values
+	 * for all corresponding cells.
+	 * @param other
+	 * @returns
+	 */
+	public equals(other: Grid): boolean {
+		if (this.rowCount === other.rowCount && this.colCount === other.colCount) {
+			for (const cell of this) {
+				if (cell.value !== other.getValue(cell.position)) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -1214,8 +1252,8 @@ export class Cell {
 
 	/**
 	 * Return the manhattan distance between this cell and another cell
-	 * @param other 
-	 * @returns 
+	 * @param other
+	 * @returns
 	 */
 	public manhattanDistanceTo(other: Cell) {
 		return Math.abs(other.position[0] - this.position[0]) + Math.abs(other.position[1] - this.position[1]);
@@ -1298,17 +1336,17 @@ if (require.main === module) {
 	borderGrid.log();
 
 	// delete the inner border of !
-	borderGrid.editGrid({atCol: {count: -2, index: 2}});
-	borderGrid.editGrid({atCol: {count: -2, index: 7}});
-	borderGrid.editGrid({atRow: {count: -2, index: 2}});
-	borderGrid.editGrid({atRow: {count: -2, index: 7}});
+	borderGrid.editGrid({ atCol: { count: -2, index: 2 } });
+	borderGrid.editGrid({ atCol: { count: -2, index: 7 } });
+	borderGrid.editGrid({ atRow: { count: -2, index: 2 } });
+	borderGrid.editGrid({ atRow: { count: -2, index: 7 } });
 	borderGrid.log();
 
 	// add them back!
-	borderGrid.editGrid({fillWith: "!", atCol: {count: 2, index: 2}});
-	borderGrid.editGrid({fillWith: "!", atCol: {count: 2, index: 9}});
-	borderGrid.editGrid({fillWith: "!", atRow: {count: 2, index: 2}});
-	borderGrid.editGrid({fillWith: "!", atRow: {count: 2, index: 9}});
+	borderGrid.editGrid({ fillWith: "!", atCol: { count: 2, index: 2 } });
+	borderGrid.editGrid({ fillWith: "!", atCol: { count: 2, index: 9 } });
+	borderGrid.editGrid({ fillWith: "!", atRow: { count: 2, index: 2 } });
+	borderGrid.editGrid({ fillWith: "!", atRow: { count: 2, index: 9 } });
 	borderGrid.log();
 
 	// Copy half of the grid to new grid, a few different ways
