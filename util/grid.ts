@@ -2,6 +2,10 @@ import * as util from "./util";
 import _, { includes } from "lodash";
 import chalk from "chalk";
 
+export type CardinalDirection = "north" | "south" | "east" | "west";
+export type OrdinalDirection = "northwest" | "southwest" | "northeast" | "southeast";
+export type Direction = CardinalDirection | OrdinalDirection;
+
 /**
  * Options for initializing a Grid
  */
@@ -1182,6 +1186,13 @@ export class Cell {
 	}
 
 	/**
+	 * Returns true if this cell is on an edge of the grid.
+	 */
+	public isEdge() {
+		return this.isNorthEdge() || this.isSouthEdge() || this.isEastEdge() || this.isWestEdge();
+	}
+
+	/**
 	 * Returns true if this cell is on the top row of the grid.
 	 */
 	public isNorthEdge() {
@@ -1283,6 +1294,86 @@ export class Cell {
 		return `[${this.pos[0]}, ${this.pos[1]}]: ${this.value}`;
 	}
 }
+
+/**
+ * Given an origin and a destination cell, determine if the destination
+ * is perfectly north, south, east, west, northwest, southwest, northeast, or southeast
+ * from the origin. If so, return that string, otherwise undefined. If both
+ * cells have the same position, return "stationary".
+ * @param from
+ * @param to
+ * @returns
+ */
+export const computeDirection = (from: Cell | GridPos, to: Cell | GridPos) => {
+	const fromPos = from instanceof Cell ? from.position : from;
+	const toPos = to instanceof Cell ? to.position : to;
+
+	const deltaRow = toPos[0] - fromPos[0];
+	const deltaCol = toPos[1] - fromPos[1];
+
+	if (deltaRow === 0 && deltaCol === 0) {
+		return "stationary";
+	}
+	if (deltaRow === 0) {
+		if (deltaCol > 0) {
+			return "east";
+		}
+		if (deltaCol < 0) {
+			return "west";
+		}
+	}
+	if (deltaCol === 0) {
+		if (deltaRow > 0) {
+			return "south";
+		}
+		if (deltaRow < 0) {
+			return "north";
+		}
+	}
+	if (deltaRow > 0 && deltaCol > 0 && deltaRow === deltaCol) {
+		return "southeast";
+	}
+	if (deltaRow > 0 && deltaCol < 0 && deltaRow === deltaCol) {
+		return "southwest";
+	}
+	if (deltaRow < 0 && deltaCol > 0 && deltaRow === deltaCol) {
+		return "northeast";
+	}
+	if (deltaRow < 0 && deltaCol < 0 && deltaRow === deltaCol) {
+		return "northwest";
+	}
+	return undefined;
+};
+
+export const getOppositeDirection = (
+	dir: "north" | "south" | "east" | "west" | "northeast" | "southeast" | "southwest" | "northwest"
+) => {
+	if (dir === "north") {
+		return "south";
+	}
+	if (dir === "south") {
+		return "north";
+	}
+	if (dir === "west") {
+		return "east";
+	}
+	if (dir === "east") {
+		return "west";
+	}
+	if (dir === "northwest") {
+		return "southeast";
+	}
+	if (dir === "northeast") {
+		return "southwest";
+	}
+	if (dir === "southwest") {
+		return "northeast";
+	}
+	if (dir === "southeast") {
+		return "northwest";
+	}
+	throw new Error("Unrecognized direction", dir);
+};
 
 export const serializeCellArray = (cells: Cell[]) => {
 	const dup = [...cells];
