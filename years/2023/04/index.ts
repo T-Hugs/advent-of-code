@@ -1,3 +1,4 @@
+import "core-js";
 import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
@@ -13,10 +14,6 @@ const DAY = 4;
 // solution path: /home/trevorsg/dev/t-hugs/advent-of-code/years/2023/04/index.ts
 // data path    : /home/trevorsg/dev/t-hugs/advent-of-code/years/2023/04/data.txt
 // problem url  : https://adventofcode.com/2023/day/4
-
-function intersect(a: Set<number>, b: Set<number>) {
-	return new Set([...a].filter(x => b.has(x)));
-}
 
 async function p2023day4_part1(input: string, ...params: any[]) {
 	const lines = input.split("\n");
@@ -37,7 +34,8 @@ async function p2023day4_part1(input: string, ...params: any[]) {
 		const mySet = new Set(myNums);
 		const winningSet = new Set(winning);
 
-		const intersection = intersect(mySet, winningSet);
+		// @ts-expect-error When this becomes an error, the lib is updated and we can remove this comment.
+		const intersection = mySet.intersection(winningSet);
 		const winningNumbers = intersection.size;
 
 		if (winningNumbers === 0) {
@@ -74,7 +72,8 @@ async function p2023day4_part2(input: string, ...params: any[]) {
 		const mySet = new Set(myNums);
 		const winningSet = new Set(winning);
 
-		const intersection = intersect(mySet, winningSet);
+		// @ts-expect-error When this becomes an error, the lib is updated and we can remove this comment.
+		const intersection = mySet.intersection(winningSet);
 		const points = intersection.size;
 
 		for (let j = 0; j < points; ++j) {
