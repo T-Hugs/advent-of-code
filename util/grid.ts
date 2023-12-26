@@ -2,6 +2,10 @@ import * as util from "./util";
 import _, { includes } from "lodash";
 import chalk from "chalk";
 
+export type CardinalDirection = "north" | "south" | "east" | "west";
+export type OrdinalDirection = "northwest" | "southwest" | "northeast" | "southeast";
+export type Direction = CardinalDirection | OrdinalDirection;
+
 /**
  * Options for initializing a Grid
  */
@@ -126,6 +130,18 @@ export interface EditGridOptions {
 	 * Number of rows to add (negative to delete) to the bottom of the grid
 	 */
 	bottom?: number;
+
+	/**
+	 * Add or remove rows at the given row index. Negative count to delete rows.
+	 * If negative count is more than remaining row count, throw an error.
+	 */
+	atRow?: { index: number; count: number };
+
+	/**
+	 * Add or remove columns at the given column index. Negative count to delete rows.
+	 * If negative count is more than remaining col count, throw an error.
+	 */
+	atCol?: { index: number; count: number };
 
 	/**
 	 * Sigil to fill new cells with.
@@ -596,6 +612,8 @@ export class Grid {
 		this.editBottom(options);
 		this.editLeft(options);
 		this.editRight(options);
+		this.editRowAtIndex(options);
+		this.editColAtIndex(options);
 	}
 
 	private reconcileTrackedCells() {
@@ -604,6 +622,54 @@ export class Grid {
 			newTrackedCells.set(cell.position.join(","), cell);
 		}
 		this.trackedCells = newTrackedCells;
+	}
+
+	private editRowAtIndex(options: Pick<EditGridOptions, "atRow" | "fillWith">) {
+		const { atRow: { index, count } = { index: 0, count: 0 }, fillWith = this.fillWith } = options;
+		if (count < 0 && Math.abs(count) + index > this.rowCount) {
+			throw new Error("Cannot remove more rows than exist in the grid.");
+		}
+		this.numRows += count;
+		this.ensureSigilRegistered(fillWith);
+		if (count < 0) {
+			this.grid.splice(index, -count);
+		}
+		if (count > 0) {
+			for (let i = 0; i < count; ++i) {
+				this.grid.splice(index, 0, Array(this.numCols).fill(fillWith));
+			}
+			for (const cell of this.trackedCells.values()) {
+				if (cell.position[0] > index) {
+					cell.position[0] += count;
+				}
+			}
+			this.reconcileTrackedCells();
+		}
+	}
+
+	private editColAtIndex(options: Pick<EditGridOptions, "atCol" | "fillWith">) {
+		const { atCol: { index, count } = { index: 0, count: 0 }, fillWith = this.fillWith } = options;
+		if (count < 0 && Math.abs(count) + index > this.colCount) {
+			throw new Error("Cannot remove more columns than exist in the grid.");
+		}
+		this.numCols += count;
+		this.ensureSigilRegistered(fillWith);
+		if (count < 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].splice(index, -count);
+			}
+		}
+		if (count > 0) {
+			for (let i = 0; i < this.numRows; ++i) {
+				this.grid[i].splice(index, 0, ...Array(count).fill(fillWith));
+			}
+			for (const cell of this.trackedCells.values()) {
+				if (cell.position[1] > index) {
+					cell.position[1] += count;
+				}
+			}
+			this.reconcileTrackedCells();
+		}
 	}
 
 	private editTop(options: Pick<EditGridOptions, "top" | "fillWith">) {
@@ -810,6 +876,44 @@ export class Grid {
 	}
 
 	/**
+	 * If grids have the same dimensions, count the number of cells that are different.
+	 * @param other
+	 * @returns
+	 */
+	public countDifferences(other: Grid): number {
+		let differences = 0;
+		if (this.rowCount === other.rowCount && this.colCount === other.colCount) {
+			for (const cell of this) {
+				if (cell.value !== other.getValue(cell.position)) {
+					differences++;
+				}
+			}
+		} else {
+			throw new Error("Cannot count differences of grids with different dimensions.");
+		}
+		return differences;
+	}
+
+	/**
+	 * Returns true if this grid and other have the same dimensions and equal cell values
+	 * for all corresponding cells.
+	 * @param other
+	 * @returns
+	 */
+	public equals(other: Grid): boolean {
+		if (this.rowCount === other.rowCount && this.colCount === other.colCount) {
+			for (const cell of this) {
+				if (cell.value !== other.getValue(cell.position)) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Iterate cell-by-cell in the grid, starting with the top-left cell, moving
 	 * through the whole row before moving down to the next row.
 	 */
@@ -849,7 +953,7 @@ export class Grid {
  * is immutable! Its value is stored on the parent grid.
  */
 export class Cell {
-	private grid: Grid;
+	private _grid: Grid;
 	private pos: GridPos;
 
 	/**
@@ -858,15 +962,19 @@ export class Cell {
 	public data: any = undefined;
 
 	constructor(grid: Grid, pos: GridPos, value: string) {
-		this.grid = grid;
+		this._grid = grid;
 		this.pos = pos;
+	}
+
+	public get grid() {
+		return this._grid;
 	}
 
 	/**
 	 * Gets the value of the cell.
 	 */
 	public get value() {
-		return this.grid.getValue(this.pos);
+		return this._grid.getValue(this.pos);
 	}
 
 	/**
@@ -882,7 +990,7 @@ export class Cell {
 	 * 10 columns will have an index of 10 (0-based).
 	 */
 	public get index() {
-		return this.pos[0] * this.grid.colCount + this.pos[1];
+		return this.pos[0] * this._grid.colCount + this.pos[1];
 	}
 
 	// @todo fix the api for function sbelow
@@ -950,25 +1058,25 @@ export class Cell {
 			let i = 0;
 			typeof count === "number"
 				? i < count
-				: (i === 0 && forceOneMove) || count(this.grid.getCell(nextPos), this);
+				: (i === 0 && forceOneMove) || count(this._grid.getCell(nextPos), this);
 			++i
 		) {
 			let lastValidCell: Cell = this;
 			for (const movement of movements) {
 				nextPos[0] += movement[0];
 				nextPos[1] += movement[1];
-				const landedOn = this.grid.getCell(nextPos);
+				const landedOn = this._grid.getCell(nextPos);
 				if (landedOn) {
 					lastValidCell = landedOn;
 				}
 			}
 			if (moveOption === "wrap") {
-				nextPos[0] = util.mod(nextPos[0], this.grid.rowCount);
-				nextPos[1] = util.mod(nextPos[1], this.grid.colCount);
+				nextPos[0] = util.mod(nextPos[0], this._grid.rowCount);
+				nextPos[1] = util.mod(nextPos[1], this._grid.colCount);
 			} else if (moveOption === "stay") {
 				const prev = [...nextPos];
-				nextPos[0] = util.clamp(nextPos[0], 0, this.grid.rowCount - 1);
-				nextPos[1] = util.clamp(nextPos[1], 0, this.grid.colCount - 1);
+				nextPos[0] = util.clamp(nextPos[0], 0, this._grid.rowCount - 1);
+				nextPos[1] = util.clamp(nextPos[1], 0, this._grid.colCount - 1);
 				if (nextPos[0] !== prev[0] || nextPos[1] !== prev[1]) {
 					nextPos[0] = lastValidCell.pos[0];
 					nextPos[1] = lastValidCell.pos[1];
@@ -976,32 +1084,32 @@ export class Cell {
 				}
 			} else if (moveOption === "expand") {
 				if (nextPos[0] < 0) {
-					this.grid.editGrid({ top: -nextPos[0] });
+					this._grid.editGrid({ top: -nextPos[0] });
 					nextPos[0] = 0;
 				}
 				if (nextPos[1] < 0) {
-					this.grid.editGrid({ left: -nextPos[1] });
+					this._grid.editGrid({ left: -nextPos[1] });
 					nextPos[1] = 0;
 				}
-				if (nextPos[0] >= this.grid.rowCount) {
-					this.grid.editGrid({ bottom: nextPos[0] - this.grid.rowCount + 1 });
-					nextPos[0] = this.grid.rowCount - 1;
+				if (nextPos[0] >= this._grid.rowCount) {
+					this._grid.editGrid({ bottom: nextPos[0] - this._grid.rowCount + 1 });
+					nextPos[0] = this._grid.rowCount - 1;
 				}
-				if (nextPos[1] >= this.grid.colCount) {
-					this.grid.editGrid({ right: nextPos[1] - this.grid.colCount + 1 });
-					nextPos[1] = this.grid.colCount - 1;
+				if (nextPos[1] >= this._grid.colCount) {
+					this._grid.editGrid({ right: nextPos[1] - this._grid.colCount + 1 });
+					nextPos[1] = this._grid.colCount - 1;
 				}
 			} else if (typeof moveOption === "function") {
-				const result = moveOption(this.grid.getCell(nextPos), this);
+				const result = moveOption(this._grid.getCell(nextPos), this);
 				if (result) {
 					nextPos = result;
 				}
 			}
 		}
-		const result = this.grid.getCell(nextPos, null);
-		if (updateTracking && result && this.grid.isTracked(this)) {
-			this.grid.untrackCell(this);
-			this.grid.trackCell(result);
+		const result = this._grid.getCell(nextPos, null);
+		if (updateTracking && result && this._grid.isTracked(this)) {
+			this._grid.untrackCell(this);
+			this._grid.trackCell(result);
 		}
 		if (transferData && result) {
 			result.data = this.data;
@@ -1078,6 +1186,13 @@ export class Cell {
 	}
 
 	/**
+	 * Returns true if this cell is on an edge of the grid.
+	 */
+	public isEdge() {
+		return this.isNorthEdge() || this.isSouthEdge() || this.isEastEdge() || this.isWestEdge();
+	}
+
+	/**
 	 * Returns true if this cell is on the top row of the grid.
 	 */
 	public isNorthEdge() {
@@ -1146,12 +1261,21 @@ export class Cell {
 		return values;
 	}
 
+	/**
+	 * Return the manhattan distance between this cell and another cell
+	 * @param other
+	 * @returns
+	 */
+	public manhattanDistanceTo(other: Cell) {
+		return Math.abs(other.position[0] - this.position[0]) + Math.abs(other.position[1] - this.position[1]);
+	}
+
 	public isEqual(other: Cell | undefined) {
 		return (
 			other !== undefined &&
 			this.position[0] === other.position[0] &&
 			this.position[1] === other.position[1] &&
-			this.grid === other.grid
+			this._grid === other._grid
 		);
 	}
 
@@ -1160,7 +1284,7 @@ export class Cell {
 	 * @param val Single-character string value to set
 	 */
 	public setValue(val: string) {
-		this.grid.setCell(this.pos, val);
+		this._grid.setCell(this.pos, val);
 	}
 
 	/**
@@ -1171,11 +1295,91 @@ export class Cell {
 	}
 }
 
+/**
+ * Given an origin and a destination cell, determine if the destination
+ * is perfectly north, south, east, west, northwest, southwest, northeast, or southeast
+ * from the origin. If so, return that string, otherwise undefined. If both
+ * cells have the same position, return "stationary".
+ * @param from
+ * @param to
+ * @returns
+ */
+export const computeDirection = (from: Cell | GridPos, to: Cell | GridPos) => {
+	const fromPos = from instanceof Cell ? from.position : from;
+	const toPos = to instanceof Cell ? to.position : to;
+
+	const deltaRow = toPos[0] - fromPos[0];
+	const deltaCol = toPos[1] - fromPos[1];
+
+	if (deltaRow === 0 && deltaCol === 0) {
+		return "stationary";
+	}
+	if (deltaRow === 0) {
+		if (deltaCol > 0) {
+			return "east";
+		}
+		if (deltaCol < 0) {
+			return "west";
+		}
+	}
+	if (deltaCol === 0) {
+		if (deltaRow > 0) {
+			return "south";
+		}
+		if (deltaRow < 0) {
+			return "north";
+		}
+	}
+	if (deltaRow > 0 && deltaCol > 0 && deltaRow === deltaCol) {
+		return "southeast";
+	}
+	if (deltaRow > 0 && deltaCol < 0 && deltaRow === deltaCol) {
+		return "southwest";
+	}
+	if (deltaRow < 0 && deltaCol > 0 && deltaRow === deltaCol) {
+		return "northeast";
+	}
+	if (deltaRow < 0 && deltaCol < 0 && deltaRow === deltaCol) {
+		return "northwest";
+	}
+	return undefined;
+};
+
+export const getOppositeDirection = (
+	dir: "north" | "south" | "east" | "west" | "northeast" | "southeast" | "southwest" | "northwest"
+) => {
+	if (dir === "north") {
+		return "south";
+	}
+	if (dir === "south") {
+		return "north";
+	}
+	if (dir === "west") {
+		return "east";
+	}
+	if (dir === "east") {
+		return "west";
+	}
+	if (dir === "northwest") {
+		return "southeast";
+	}
+	if (dir === "northeast") {
+		return "southwest";
+	}
+	if (dir === "southwest") {
+		return "northeast";
+	}
+	if (dir === "southeast") {
+		return "northwest";
+	}
+	throw new Error("Unrecognized direction", dir);
+};
+
 export const serializeCellArray = (cells: Cell[]) => {
 	const dup = [...cells];
 	dup.sort(gridOrderCellSorter);
 	return "{" + dup.map(c => c.toString()).join("},{") + "}";
-}
+};
 
 if (require.main === module) {
 	// run tests if this file is run directly.
@@ -1220,6 +1424,20 @@ if (require.main === module) {
 		destStartRow: borderSize,
 		destStartCol: borderSize,
 	});
+	borderGrid.log();
+
+	// delete the inner border of !
+	borderGrid.editGrid({ atCol: { count: -2, index: 2 } });
+	borderGrid.editGrid({ atCol: { count: -2, index: 7 } });
+	borderGrid.editGrid({ atRow: { count: -2, index: 2 } });
+	borderGrid.editGrid({ atRow: { count: -2, index: 7 } });
+	borderGrid.log();
+
+	// add them back!
+	borderGrid.editGrid({ fillWith: "!", atCol: { count: 2, index: 2 } });
+	borderGrid.editGrid({ fillWith: "!", atCol: { count: 2, index: 9 } });
+	borderGrid.editGrid({ fillWith: "!", atRow: { count: 2, index: 2 } });
+	borderGrid.editGrid({ fillWith: "!", atRow: { count: 2, index: 9 } });
 	borderGrid.log();
 
 	// Copy half of the grid to new grid, a few different ways

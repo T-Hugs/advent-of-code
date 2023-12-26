@@ -1,10 +1,11 @@
-import _ from "lodash";
+import _, { repeat } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { normalizeTestCases } from "../../../util/test";
+import { Grid } from "../../../util/grid";
 
 const YEAR = 2023;
 const DAY = 14;
@@ -14,15 +15,91 @@ const DAY = 14;
 // problem url  : https://adventofcode.com/2023/day/14
 
 async function p2023day14_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+
+	let moved = false;
+
+	// Bro, do you even while?
+	do {
+		moved = false;
+		for (const rock of grid.getCells("O")) {
+			const north = rock.north();
+			if (north && north.value === ".") {
+				rock.setValue(".");
+				north.setValue("O");
+				moved = true;
+			}
+		}
+	} while (moved === true);
+
+	return grid.getCells("O").reduce((p, c) => p + (c.grid.rowCount - c.position[0]), 0);
+}
+
+function cycle(grid: Grid) {
+	for (const dir of ["north", "west", "south", "east"] as const) {
+		while (true) {
+			// Very inefficient
+			let moved = false;
+			for (const rock of grid.getCells("O")) {
+				const adj = rock[dir]();
+				if (adj && adj.value === ".") {
+					rock.setValue(".");
+					adj.setValue("O");
+					moved = true;
+				}
+			}
+			if (!moved) {
+				break;
+			}
+		}
+	}
 }
 
 async function p2023day14_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const totalCycles = 1000000000;
+	const grid = new Grid({ serialized: input });
+	const memToIndex: Map<string, number> = new Map();
+	const memToGrid: Grid[] = [];
+
+	let nextGrid = grid;
+	let i = 0;
+	while (true) {
+		const serialGrid = nextGrid.toString();
+		const repeatedIndex = memToIndex.get(serialGrid);
+		if (repeatedIndex) {
+			const period = i - repeatedIndex;
+			nextGrid = memToGrid[repeatedIndex + (totalCycles - repeatedIndex) % period];
+			break;
+		} else {
+			memToIndex.set(serialGrid, i);
+			memToGrid.push(nextGrid);
+		}
+		nextGrid = nextGrid.copyGrid();
+		cycle(nextGrid);
+		i++;
+	}
+
+	return nextGrid.getCells("O").reduce((p, c) => p + (c.grid.rowCount - c.position[0]), 0);
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....`,
+			extraArgs: [],
+			expected: `136`,
+			expectedPart2: `64`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
@@ -48,7 +125,7 @@ async function run() {
 	const part1Solution = String(await p2023day14_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2023day14_part2(input));
 	const part2After = performance.now();
 
