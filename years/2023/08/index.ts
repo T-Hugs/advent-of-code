@@ -83,7 +83,6 @@ async function p2023day8_part2(input: string, ...params: any[]) {
 			}
 		}
 	}
-	console.log(stepCounts);
 	return util.lcm(Object.values(stepCounts).map(BigInt));
 }
 

@@ -133,8 +133,6 @@ async function p2023day7_part2(input: string, ...params: any[]) {
 		return 0;
 	});
 	hands.reverse();
-	const test = hands.map(h => [h, getHandRank(h[0], true)]);
-	console.log(test.length);
 	let total = 0;
 	for (let i = 0; i < hands.length; ++i) {
 		const points = hands[i][1] * (i + 1);

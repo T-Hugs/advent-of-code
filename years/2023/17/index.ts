@@ -143,11 +143,11 @@ async function p2023day17_part2(input: string, ...params: any[]) {
 		},
 	});
 
-	const vis = grid.copyGrid();
-	for (const p of path.path) {
-		vis.setCell(p.position, "#");
-	}
-	vis.log();
+	// const vis = grid.copyGrid();
+	// for (const p of path.path) {
+	// 	vis.setCell(p.position, "#");
+	// }
+	// vis.log();
 
 	return path.path.slice(1).reduce((p, c) => p + Number(c.value), 0);
 }
