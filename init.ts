@@ -278,7 +278,7 @@ async function run() {
 				const isDone = await suckDay(day, year);
 				if (isDone) {
 					console.log(`Finished sucking year ${year} after day: ${day - 1}.`);
-					return;
+					break;
 				}
 
 				// Wait 100ms between requests, because idk.
