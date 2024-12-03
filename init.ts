@@ -1,4 +1,3 @@
-import fetch from "cross-fetch";
 import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate, formatTime } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";

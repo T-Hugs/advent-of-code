@@ -2,7 +2,6 @@ import { LocalStorage } from "node-localstorage";
 import { formatTime, getAppRoot, wait } from "./util/util";
 import path from "path";
 import { log, SolutionObject, solutionLogKey } from "./util/log";
-import fetch from "cross-fetch";
 import chalk from "chalk";
 import _ from "lodash";
 import { getSessionToken } from "./getToken";
