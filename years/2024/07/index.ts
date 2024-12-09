@@ -14,15 +14,80 @@ const DAY = 7;
 // problem url  : https://adventofcode.com/2024/day/7
 
 async function p2024day7_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const equations: Map<number, number[]> = new Map();
+	const lines = input.split("\n");
+	for (const line of lines) {
+		const [resultStr, valuesStr] = line.split(": ");
+		equations.set(Number(resultStr), valuesStr.split(" ").map(Number));
+	}
+	let sum = 0;
+	for (const [target, values] of equations) {
+		const permutations = Math.pow(2, values.length - 1);
+		for (let i = 0; i < permutations; ++i) {
+			const binary = i.toString(2).padStart(values.length - 1, "0");
+			let answer = values[0];
+			for (let j = 0; j < binary.length; ++j) {
+				if (binary[j] === "0") {
+					answer += values[j + 1];
+				} else {
+					answer *= values[j + 1];
+				}
+			}
+			if (answer === target) {
+				sum += target;
+				break;
+			}
+		}
+	}
+	return sum;
 }
 
 async function p2024day7_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const equations: Map<number, number[]> = new Map();
+	const lines = input.split("\n");
+	for (const line of lines) {
+		const [resultStr, valuesStr] = line.split(": ");
+		equations.set(Number(resultStr), valuesStr.split(" ").map(Number));
+	}
+	let sum = 0;
+	for (const [target, values] of equations) {
+		const permutations = Math.pow(3, values.length - 1);
+		for (let i = 0; i < permutations; ++i) {
+			const trinary = i.toString(3).padStart(values.length - 1, "0");
+			let answer = values[0];
+			for (let j = 0; j < trinary.length; ++j) {
+				if (trinary[j] === "0") {
+					answer += values[j + 1];
+				} else if (trinary[j] === "1") {
+					answer *= values[j + 1];
+				} else {
+					answer = Number(String(answer) + values[j + 1]);
+				}
+			}
+			if (answer === target) {
+				sum += target;
+				break;
+			}
+		}
+	}
+	return sum;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20`,
+		extraArgs: [],
+		expected: `3749`,
+		expectedPart2: `11387`,
+	}];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);

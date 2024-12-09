@@ -5,6 +5,8 @@ import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { normalizeTestCases } from "../../../util/test";
+import { Grid } from "../../../util/grid";
+import { dir } from "console";
 
 const YEAR = 2024;
 const DAY = 6;
@@ -14,15 +16,101 @@ const DAY = 6;
 // problem url  : https://adventofcode.com/2024/day/6
 
 async function p2024day6_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({serialized: input});
+	const start = grid.getCell("^");
+	let direction = 0; // north east south west
+
+	let pos = start;
+
+	while (true) {
+		pos?.setValue("@");
+		let nextPos = pos;
+		if (direction === 0) {
+			nextPos = pos?.north();
+		}
+		if (direction === 1) {
+			nextPos = pos?.east();
+		}
+		if (direction === 2) {
+			nextPos = pos?.south();
+		}
+		if (direction === 3) {
+			nextPos = pos?.west();
+		}
+		if (nextPos?.value === "#") {
+			direction = (direction + 1) % 4
+		} else {
+			pos = nextPos;
+		}
+		if (!pos) {
+			break;
+		}
+	}
+	return grid.getCells("@").length;	
 }
 
 async function p2024day6_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({serialized: input});
+	const start = grid.getCell("^");
+
+	let count = 0;
+	for (const cell of grid.getCells(".")) {
+		cell.setValue("#");
+
+		const visited = new Set<string>();
+		let direction = 0; // north east south west
+		let pos = start;
+
+		while (true) {
+			const spaceName = pos?.position.join(",") + "|" + direction;
+			if (visited.has(spaceName)) {
+				count++;
+				break;
+			}
+			visited.add(spaceName);
+			let nextPos = pos;
+			if (direction === 0) {
+				nextPos = pos?.north();
+			}
+			if (direction === 1) {
+				nextPos = pos?.east();
+			}
+			if (direction === 2) {
+				nextPos = pos?.south();
+			}
+			if (direction === 3) {
+				nextPos = pos?.west();
+			}
+			if (nextPos?.value === "#") {
+				direction = (direction + 1) % 4
+			} else {
+				pos = nextPos;
+			}
+			if (!pos) {
+				break;
+			}
+		}
+		cell.setValue(".");
+	}
+	return count;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [{
+		input: `....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...`,
+		extraArgs: [],
+		expected: `41`,
+		expectedPart2: `6`,
+	}];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);

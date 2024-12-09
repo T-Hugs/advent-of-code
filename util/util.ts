@@ -218,6 +218,30 @@ export function powerMod(_base: number | bigint, _exponent: number | bigint, _mo
 	return result;
 }
 
+export function* choose<T>(inputArr: T[], count: number): Generator<T[], any, any> {
+	const options = Math.pow(2, inputArr.length);
+	for (let i = 0; i < options; ++i) {
+		let manip = i;
+		let ones = 0;
+		while (manip > 0) {
+			if ((manip & 1) === 1) {
+				ones++;
+			}
+			manip >>= 1;
+		}
+		if (ones === count) {
+			const choice: T[] = [];
+			const binary = i.toString(2).padStart(inputArr.length, "0");
+			for (let j = 0; j < binary.length; ++j) {
+				if (binary[j] === "1") {
+					choice.push(inputArr[j]);
+				}
+			}
+			yield choice;
+		}
+	}
+}
+
 export function getPermutations<T>(inputArr: T[]) {
 	const result: T[][] = [];
 

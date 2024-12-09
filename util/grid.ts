@@ -1038,6 +1038,58 @@ export class Cell {
 	 * @param count Number of cells to move
 	 * @param moveOption How to handle hitting the edge. @See MoveOption.
 	 */
+	public northeast(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
+	) {
+		return this.repeatMovements([Dir.NE], { count, moveOption, ...options });
+	}
+
+	/**
+	 * Return the cell found `count` cells left of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public northwest(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
+	) {
+		return this.repeatMovements([Dir.NW], { count, moveOption, ...options });
+	}
+
+	/**
+	 * Return the cell found `count` cells left of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public southeast(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
+	) {
+		return this.repeatMovements([Dir.SE], { count, moveOption, ...options });
+	}
+
+	/**
+	 * Return the cell found `count` cells left of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
+	public southwest(
+		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
+		moveOption: MoveOption = "none",
+		options: Omit<RepeatMovementsOptions, "count" | "moveOption"> = {}
+	) {
+		return this.repeatMovements([Dir.SW], { count, moveOption, ...options });
+	}
+
+	/**
+	 * Return the cell found `count` cells left of this cell.
+	 * @param count Number of cells to move
+	 * @param moveOption How to handle hitting the edge. @See MoveOption.
+	 */
 	public west(
 		count: number | ((cell: Cell | undefined, origin: Cell) => boolean) = 1,
 		moveOption: MoveOption = "none",
