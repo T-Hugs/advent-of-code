@@ -5,6 +5,9 @@ import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
 import { normalizeTestCases } from "../../../util/test";
+import { Grid } from "../../../util/grid";
+import { bfSearch, undirectedAllPaths } from "../../../util/graph";
+import aStar from "a-star";
 
 const YEAR = 2024;
 const DAY = 10;
@@ -14,15 +17,91 @@ const DAY = 10;
 // problem url  : https://adventofcode.com/2024/day/10
 
 async function p2024day10_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+
+	return grid
+		.getCells("0")
+		.map(
+			start =>
+				grid
+					.getCells("9")
+					.map(end =>
+						aStar({
+							start: start,
+							isEnd: node => node.position.join(",") === end.position.join(","),
+							distance: (a, b) => 1,
+							neighbor: node =>
+								node
+									.neighbors(false, false, true, true)
+									.filter(n => Number(n.value) === Number(node.value) + 1),
+							hash: node => node.position.join(","),
+							heuristic: node =>
+								Math.abs(node.position[0] - end.position[0]) +
+								Math.abs(node.position[1] - end.position[1]),
+						})
+					)
+					.filter(r => r.status === "success").length
+		)
+		.reduce((a, b) => a + b, 0);
 }
 
 async function p2024day10_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const grid = new Grid({ serialized: input });
+
+	const starts = grid.getCells("0");
+	const ends = grid.getCells("9");
+	let total = 0;
+	for (const start of starts) {
+		for (const end of ends) {
+			total += undirectedAllPaths({
+				start: start,
+				isEnd: node => node.position.join(",") === end.position.join(","),
+				neighbors: node =>
+					node.neighbors(false, false, true, true).filter(n => Number(n.value) === Number(node.value) + 1),
+				canRevisit: () => false,
+			}).length;
+		}
+	}
+	return total;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `0123
+1234
+8765
+9876`,
+			extraArgs: [],
+			expected: `1`,
+			expectedPart2: ``,
+		},
+		{
+			input: `...0...
+...1...
+...2...
+6543456
+7.....7
+8.....8
+9.....9`,
+			extraArgs: [],
+			expected: `2`,
+			expectedPart2: ``,
+		},
+		{
+			input: `89010123
+78121874
+87430965
+96549874
+45678903
+32019012
+01329801
+10456732`,
+			extraArgs: [],
+			expected: `36`,
+			expectedPart2: `81`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
@@ -48,7 +127,7 @@ async function run() {
 	const part1Solution = String(await p2024day10_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2024day10_part2(input));
 	const part2After = performance.now();
 
