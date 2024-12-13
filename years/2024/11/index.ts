@@ -13,16 +13,62 @@ const DAY = 11;
 // data path    : /home/trevorsg/dev/t-hugs/advent-of-code/years/2024/11/data.txt
 // problem url  : https://adventofcode.com/2024/day/11
 
+const memo = new Map<string, number>();
+
+function count(num: number, blinks: number): number {
+	const key = `${num},${blinks}`;
+	if (memo.has(key)) {
+		return memo.get(key)!;
+	}
+
+	if (blinks === 0) {
+		return 1;
+	}
+	if (num === 0) {
+		const ans = count(1, blinks - 1);
+		memo.set(key, ans);
+		return ans;
+	}
+	const digits = Math.floor(Math.log10(num)) + 1;
+	let ans;
+	if (digits % 2 === 0) {
+		ans =
+			count(Math.floor(num / 10 ** (digits / 2)), blinks - 1) +
+			count(Math.floor(num % 10 ** (digits / 2)), blinks - 1);
+	} else {
+		ans = count(num * 2024, blinks - 1);
+	}
+	memo.set(key, ans);
+	return ans;
+}
+
 async function p2024day11_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	let stones = input.split(" ").map(Number);
+	let result = 0;
+	for (const stone of stones) {
+		result += count(stone, 25);
+	}
+	return result;
 }
 
 async function p2024day11_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	let stones = input.split(" ").map(Number);
+	let result = 0;
+	for (const stone of stones) {
+		result += count(stone, 75);
+	}
+	return result;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `125 17`,
+			extraArgs: [],
+			expected: `55312`,
+			expectedPart2: `65601038650482`,
+		},
+	];
 	const part2tests: TestCase[] = [];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
@@ -48,7 +94,7 @@ async function run() {
 	const part1Solution = String(await p2024day11_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now()
+	const part2Before = performance.now();
 	const part2Solution = String(await p2024day11_part2(input));
 	const part2After = performance.now();
 

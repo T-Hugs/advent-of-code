@@ -2,3 +2,4 @@
 .scratch
 ./test.ts
 node_modules/
+data.drew.txt

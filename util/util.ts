@@ -422,3 +422,13 @@ export function sumArray(arr: Iterable<number>) {
 	}
 	return sum;
 }
+
+/**
+ * Mathematically compute the number of digits in a number.
+ * (Presumably this is faster than converting to a string and checking its length.)
+ * @param num 
+ * @returns 
+ */
+export function numDigits(num: number) {
+	return Math.floor(Math.log10(num)) + 1;
+}

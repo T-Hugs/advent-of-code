@@ -51,11 +51,18 @@ async function p2024day7_part2(input: string, ...params: any[]) {
 	}
 	let sum = 0;
 	for (const [target, values] of equations) {
+
+		// Permutations is the number of ways to arrange the operators
 		const permutations = Math.pow(3, values.length - 1);
 		for (let i = 0; i < permutations; ++i) {
+
+			// Turn i into base-3
 			const trinary = i.toString(3).padStart(values.length - 1, "0");
+
 			let answer = values[0];
 			for (let j = 0; j < trinary.length; ++j) {
+				
+				// Turn the string representation of the base-3 number into a sequence of operators.
 				if (trinary[j] === "0") {
 					answer += values[j + 1];
 				} else if (trinary[j] === "1") {
